@@ -9,13 +9,13 @@ body {
   background: #ffffff;
 }
 
-.page {
+.pagina {
   min-height: 100vh;
 }
 
 /* BARRA SUPERIOR */
 
-.topbar {
+.barraSuperior {
   height: 70px;
   padding: 0 8%;
   display: flex;
@@ -23,7 +23,7 @@ body {
   border-bottom: 1px solid #a29f9f;
 }
 
-.topbar h2 {
+.barraSuperior h2 {
   margin: 0;
   font-size: 25px;
   font-weight: 700;
@@ -32,7 +32,7 @@ body {
 
 /* PANTALLA PARA SUBIR AUDIO */
 
-.content {
+.contenidoPrincipal {
   max-width: 1400px;
   margin: auto;
   padding: 100px 8%;
@@ -42,7 +42,7 @@ body {
   align-items: center;
 }
 
-.text span {
+.textoPrincipal span {
   padding: 7px 14px;
   border-radius: 20px;
   background: #f1f0ed;
@@ -50,7 +50,7 @@ body {
   font-size: 13px;
 }
 
-.text h1 {
+.textoPrincipal h1 {
   margin: 30px 0 25px;
   font-family: Georgia, "Times New Roman", serif;
   font-size: 65px;
@@ -60,20 +60,20 @@ body {
   color: #555555;
 }
 
-.text p {
+.textoPrincipal p {
   font-size: 19px;
   color: #666666;
 }
 
-/* TARJETA PARA SUBIR ARCHIVO */
+/* TARJETA PARA SUBIR AUDIO */
 
-.upload-card {
+.tarjetaAudio {
   padding: 25px;
   border: 1px solid #d6d6d6;
   border-radius: 30px;
 }
 
-.upload-box {
+.zonaSubirAudio {
   min-height: 330px;
   padding: 40px;
   border: 1px solid #d8d8d8;
@@ -86,15 +86,15 @@ body {
   cursor: pointer;
 }
 
-.upload-box:hover {
+.zonaSubirAudio:hover {
   background: #fafafa;
 }
 
-.upload-box input {
+.zonaSubirAudio input {
   display: none;
 }
 
-.audio-icon {
+.iconoAudio {
   width: 55px;
   height: 55px;
   margin-bottom: 20px;
@@ -107,21 +107,21 @@ body {
   font-size: 25px;
 }
 
-.upload-box h3 {
+.zonaSubirAudio h3 {
   margin: 0 0 10px;
   font-size: 23px;
   font-weight: 500;
   color: #555555;
 }
 
-.upload-box p {
+.zonaSubirAudio p {
   max-width: 330px;
   margin: 0;
   color: #777777;
   line-height: 1.5;
 }
 
-.file-button {
+.botonArchivo {
   margin-top: 25px;
   padding: 11px 20px;
   border-radius: 25px;
@@ -129,7 +129,7 @@ body {
   color: #ffffff;
 }
 
-.analyze-button {
+.botonAnalizar {
   width: 100%;
   margin-top: 15px;
   padding: 14px;
@@ -141,7 +141,7 @@ body {
   cursor: pointer;
 }
 
-.analyze-button:disabled {
+.botonAnalizar:disabled {
   background: #e2e2e2;
   color: #777777;
   cursor: not-allowed;
@@ -149,13 +149,13 @@ body {
 
 /* PANTALLA DE RESULTADOS */
 
-.results {
+.resultados {
   max-width: 1400px;
   margin: auto;
   padding: 80px 8% 120px;
 }
 
-.result-label {
+.etiquetaResultado {
   display: inline-block;
   padding: 7px 14px;
   border-radius: 20px;
@@ -164,7 +164,7 @@ body {
   font-size: 13px;
 }
 
-.result-top {
+.encabezadoResultado {
   margin: 30px 0 60px;
   display: flex;
   justify-content: space-between;
@@ -172,13 +172,13 @@ body {
   gap: 30px;
 }
 
-.result-small {
+.textoResultado {
   margin: 0 0 8px;
   color: #777777;
   font-size: 18px;
 }
 
-.result-title {
+.tituloResultado {
   margin: 0;
   font-family: Georgia, "Times New Roman", serif;
   font-size: 72px;
@@ -188,9 +188,9 @@ body {
   color: #555555;
 }
 
-/* BOTÓN NUEVO ANÁLISIS */
+/* BOTÓN PARA ANALIZAR OTRA LLAMADA */
 
-.new-analysis {
+.botonNuevoAnalisis {
   padding: 12px 20px;
   border: 0;
   border-radius: 25px;
@@ -200,32 +200,25 @@ body {
   cursor: pointer;
 }
 
-.new-analysis:hover {
+.botonNuevoAnalisis:hover {
   background: #444444;
 }
 
-/* TARJETA DE ANÁLISIS */
+/* TARJETA DEL ANÁLISIS */
 
-.analysis-card {
+.tarjetaAnalisis {
   padding: 30px;
   border: 1px solid #d8d8d8;
   border-radius: 30px;
 }
 
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: start;
-  gap: 20px;
-}
-
-.card-header span {
+.encabezadoAnalisis span {
   font-size: 12px;
   color: #777777;
   letter-spacing: 0.5px;
 }
 
-.card-header h2 {
+.encabezadoAnalisis h2 {
   margin: 8px 0 0;
   font-size: 25px;
   font-weight: 500;
@@ -234,7 +227,7 @@ body {
 
 /* GRÁFICA DE PASTEL */
 
-.pie-section {
+.seccionGrafica {
   margin-top: 40px;
   padding: 30px 0;
   display: flex;
@@ -243,7 +236,7 @@ body {
   gap: 80px;
 }
 
-.pie-chart {
+.graficaPastel {
   width: 280px;
   height: 280px;
   border-radius: 50%;
@@ -252,48 +245,48 @@ body {
 
 /* DATOS DE LA GRÁFICA */
 
-.legend {
+.datosGrafica {
   display: flex;
   flex-direction: column;
   gap: 25px;
 }
 
-.legend-item {
+.datoGrafica {
   display: flex;
   align-items: center;
   gap: 15px;
 }
 
-.legend-color {
+.colorDato {
   width: 18px;
   height: 18px;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
-.color-1 {
+.colorAcustica {
   background: #292929;
 }
 
-.color-2 {
+.colorComportamiento {
   background: #666666;
 }
 
-.color-3 {
+.colorSemantica {
   background: #999999;
 }
 
-.color-4 {
+.colorContexto {
   background: #cccccc;
 }
 
-.legend-item p {
+.datoGrafica p {
   margin: 0 0 4px;
   color: #777777;
   font-size: 14px;
 }
 
-.legend-item strong {
+.datoGrafica strong {
   color: #555555;
   font-size: 20px;
 }
@@ -301,40 +294,40 @@ body {
 /* RESPONSIVE */
 
 @media (max-width: 800px) {
-  .content {
+  .contenidoPrincipal {
     grid-template-columns: 1fr;
     padding: 60px 7%;
     gap: 50px;
   }
 
-  .text h1 {
+  .textoPrincipal h1 {
     font-size: 48px;
   }
 
-  .results {
+  .resultados {
     padding: 60px 7%;
   }
 
-  .result-top {
+  .encabezadoResultado {
     flex-direction: column;
     align-items: flex-start;
   }
 
-  .result-title {
+  .tituloResultado {
     font-size: 50px;
   }
 
-  .pie-section {
+  .seccionGrafica {
     flex-direction: column;
     gap: 40px;
   }
 
-  .pie-chart {
+  .graficaPastel {
     width: 230px;
     height: 230px;
   }
 
-  .legend {
+  .datosGrafica {
     width: 100%;
   }
 } 

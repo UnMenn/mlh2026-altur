@@ -6,7 +6,7 @@ function App() {
   const [mostrarResultado, setMostrarResultado] = useState(false)
 
   // Datos temporales para probar la interfaz
-  const dummyData = {
+  const datosPrueba = {
     esHumano: true,
     acustica: 35,
     comportamiento: 25,
@@ -15,14 +15,17 @@ function App() {
   }
 
   return (
-    <main className="page">
-      <header className="topbar">
+    <main className="pagina">
+
+      <header className="barraSuperior">
         <h2>Verificación de Audio</h2>
       </header>
 
       {!mostrarResultado ? (
-        <section className="content">
-          <div className="text">
+
+        <section className="contenidoPrincipal">
+
+          <div className="textoPrincipal">
             <span>ANÁLISIS DE LLAMADAS</span>
 
             <h1>
@@ -36,8 +39,10 @@ function App() {
             </p>
           </div>
 
-          <div className="upload-card">
-            <label className="upload-box">
+          <div className="tarjetaAudio">
+
+            <label className="zonaSubirAudio">
+
               <input
                 type="file"
                 accept="audio/*"
@@ -46,7 +51,7 @@ function App() {
                 }
               />
 
-              <div className="audio-icon">♪</div>
+              <div className="iconoAudio">♪</div>
 
               <h3>
                 {audio ? audio.name : 'Sube tu audio'}
@@ -58,42 +63,48 @@ function App() {
                   : 'Arrastra un archivo aquí o selecciónalo desde tu computadora'}
               </p>
 
-              <span className="file-button">
+              <span className="botonArchivo">
                 {audio ? 'Cambiar archivo' : 'Elegir archivo'}
               </span>
+
             </label>
 
             <button
-              className="analyze-button"
+              className="botonAnalizar"
               disabled={!audio}
               onClick={() => setMostrarResultado(true)}
             >
               Analizar audio →
             </button>
-          </div>
-        </section>
-      ) : (
-        <section className="results">
 
-          <span className="result-label">
+          </div>
+
+        </section>
+
+      ) : (
+
+        <section className="resultados">
+
+          <span className="etiquetaResultado">
             RESULTADO DEL ANÁLISIS
           </span>
 
-          <div className="result-top">
+          <div className="encabezadoResultado">
+
             <div>
-              <p className="result-small">
+              <p className="textoResultado">
                 Resultado de la llamada
               </p>
 
-              <h1 className="result-title">
-                {dummyData.esHumano
+              <h1 className="tituloResultado">
+                {datosPrueba.esHumano
                   ? 'ES HUMANO'
                   : 'NO ES HUMANO'}
               </h1>
             </div>
 
             <button
-              className="new-analysis"
+              className="botonNuevoAnalisis"
               onClick={() => {
                 setMostrarResultado(false)
                 setAudio(null)
@@ -101,98 +112,97 @@ function App() {
             >
               Analizar otra llamada
             </button>
+
           </div>
 
-          <div className="analysis-card">
+          <div className="tarjetaAnalisis">
 
-            <div className="card-header">
-              <div>
-                <span>ANÁLISIS DE DETECCIÓN</span>
-                <h2>Datos de la llamada</h2>
-              </div>
+            <div className="encabezadoAnalisis">
+              <span>ANÁLISIS DE DETECCIÓN</span>
+              <h2>Datos de la llamada</h2>
             </div>
 
-            <div className="pie-section">
+            <div className="seccionGrafica">
 
               <div
-                className="pie-chart"
+                className="graficaPastel"
                 style={{
                   background: `conic-gradient(
-                    #292929 0% ${dummyData.acustica}%,
-                    #666666 ${dummyData.acustica}% ${
-                      dummyData.acustica +
-                      dummyData.comportamiento
+                    #292929 0% ${datosPrueba.acustica}%,
+
+                    #666666 ${datosPrueba.acustica}% ${
+                      datosPrueba.acustica +
+                      datosPrueba.comportamiento
                     }%,
+
                     #999999 ${
-                      dummyData.acustica +
-                      dummyData.comportamiento
+                      datosPrueba.acustica +
+                      datosPrueba.comportamiento
                     }% ${
-                      dummyData.acustica +
-                      dummyData.comportamiento +
-                      dummyData.semantica
+                      datosPrueba.acustica +
+                      datosPrueba.comportamiento +
+                      datosPrueba.semantica
                     }%,
+
                     #cccccc ${
-                      dummyData.acustica +
-                      dummyData.comportamiento +
-                      dummyData.semantica
+                      datosPrueba.acustica +
+                      datosPrueba.comportamiento +
+                      datosPrueba.semantica
                     }% 100%
                   )`
                 }}
               />
 
-              <div className="legend">
+              <div className="datosGrafica">
 
-                <div className="legend-item">
-                  <span className="legend-color color-1"></span>
+                <div className="datoGrafica">
+                  <span className="colorDato colorAcustica"></span>
 
                   <div>
                     <p>Detección acústica</p>
-                    <strong>
-                      {dummyData.acustica}%
-                    </strong>
+                    <strong>{datosPrueba.acustica}%</strong>
                   </div>
                 </div>
 
-                <div className="legend-item">
-                  <span className="legend-color color-2"></span>
+                <div className="datoGrafica">
+                  <span className="colorDato colorComportamiento"></span>
 
                   <div>
                     <p>Comportamiento</p>
-                    <strong>
-                      {dummyData.comportamiento}%
-                    </strong>
+                    <strong>{datosPrueba.comportamiento}%</strong>
                   </div>
                 </div>
 
-                <div className="legend-item">
-                  <span className="legend-color color-3"></span>
+                <div className="datoGrafica">
+                  <span className="colorDato colorSemantica"></span>
 
                   <div>
                     <p>Semántica</p>
-                    <strong>
-                      {dummyData.semantica}%
-                    </strong>
+                    <strong>{datosPrueba.semantica}%</strong>
                   </div>
                 </div>
 
-                <div className="legend-item">
-                  <span className="legend-color color-4"></span>
+                <div className="datoGrafica">
+                  <span className="colorDato colorContexto"></span>
 
                   <div>
                     <p>Contexto</p>
-                    <strong>
-                      {dummyData.contexto}%
-                    </strong>
+                    <strong>{datosPrueba.contexto}%</strong>
                   </div>
                 </div>
 
               </div>
+
             </div>
+
           </div>
+
         </section>
+
       )}
+
     </main>
   )
 }
 
-export default App 
+export default App
