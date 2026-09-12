@@ -12,6 +12,9 @@
 *.vcf
 *.xml
 
+# MACOS
+__MACOSX/
+
 ### Python ###
 # Byte-compiled / optimized / DLL files
 __pycache__/
