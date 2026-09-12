@@ -1,0 +1,77 @@
+@keyframes alturOrbFloat {
+  0%,
+  100% {
+    border-radius:
+      44% 56% 52% 48%
+      / 54% 45% 55% 46%;
+
+    transform: translateY(0) scale(1);
+  }
+
+  35% {
+    border-radius:
+      52% 48% 43% 57%
+      / 45% 58% 42% 55%;
+
+    transform: translateY(-5px) scale(1.02);
+  }
+
+  70% {
+    border-radius:
+      48% 52% 58% 42%
+      / 56% 44% 56% 44%;
+
+    transform: translateY(2px) scale(0.99);
+  }
+}
+
+@keyframes alturBlobOne {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate(18%, 12%) scale(1.15);
+  }
+}
+
+@keyframes alturBlobTwo {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate(-20%, -14%) scale(1.18);
+  }
+}
+
+.demo-page .voice-orb {
+  animation:
+    alturOrbFloat
+    7s ease-in-out
+    infinite;
+}
+
+.demo-page .voice-orb__blob--one {
+  animation:
+    alturBlobOne
+    6s ease-in-out
+    infinite;
+}
+
+.demo-page .voice-orb__blob--two {
+  animation:
+    alturBlobTwo
+    7.5s ease-in-out
+    infinite;
+}
+
+.demo-page .voice-orb--listening {
+  animation-duration: 3s;
+}
+
+.demo-page .voice-orb--speaking {
+  animation-duration: 1.9s;
+}

@@ -1,0 +1,22 @@
+:root {
+  --altur-bg: #f7f6f3;
+  --altur-surface: #ffffff;
+
+  --altur-text: #1f1f1f;
+  --altur-muted: #77736d;
+
+  --altur-blue: #91afff;
+  --altur-blue-deep: #6f84e8;
+  --altur-lilac: #b5a5f6;
+  --altur-peach: #d7aaa1;
+
+  --altur-border: #e5e2dc;
+  --altur-success: #28b97a;
+
+  --radius-sm: 12px;
+  --radius-md: 20px;
+  --radius-lg: 30px;
+
+  --shadow-soft:
+    0 20px 60px rgba(30, 30, 30, 0.08);
+}
