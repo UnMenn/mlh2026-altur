@@ -1,7 +1,7 @@
 :root {
-  --altur-blue: #91afff;
+  --altur-blue: #2f64f7;
   --altur-blue-deep: #6f84e8;
-  --altur-lilac: #b5a5f6;
+  --altur-lilac: #b5a5f8;
   --altur-peach: #d7aaa1;
 
   --altur-gradient:
@@ -108,7 +108,7 @@
   background:
     rgba(145, 175, 255, 0.11);
 
-  color: #6673a5;
+  color: #8466a5;
 
   font-size: 13px;
 
@@ -670,7 +670,7 @@
 }
 
 .colorAcustica {
-  background: #7f91e8;
+  background: #000000;
 }
 
 .colorComportamiento {
@@ -704,16 +704,16 @@
 
   background:
     linear-gradient(
-      135deg,
+      130deg,
       rgba(145, 175, 255, 0.10),
       rgba(181, 165, 246, 0.10),
       rgba(215, 170, 161, 0.07)
     );
 
-  color: #6574b8;
+  color: #254aede3;
 
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 19px;
+  font-weight: 700;
 
   text-decoration: none;
 
@@ -730,18 +730,18 @@
 .live-demo-link:hover {
   transform: translateY(-2px);
 
-  border-color: rgba(111, 132, 232, 0.48);
+  border-color: rgba(232, 81, 246, 0.996);
 
   background:
     linear-gradient(
       135deg,
-      rgba(145, 175, 255, 0.16),
-      rgba(181, 165, 246, 0.15),
-      rgba(215, 170, 161, 0.10)
+      rgba(131, 156, 224, 0.87),
+      rgba(22, 22, 251, 0.15),
+      rgba(233, 76, 29, 0.698)
     );
 
   box-shadow:
-    0 12px 30px rgba(111, 132, 232, 0.12);
+    0 12px 30px rgba(26, 36, 231, 0.12);
 }
 
 .live-demo-link:active {
