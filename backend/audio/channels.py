@@ -5,16 +5,6 @@ import numpy as np
 
 
 def extract_channels(wav_bytes: bytes) -> tuple[np.ndarray, np.ndarray]:
-    """
-    Extract caller and agent channels from a stereo WAV.
-
-    Channel 0 = caller
-    Channel 1 = agent
-
-    Returns:
-        caller_audio: NumPy array
-        agent_audio: NumPy array
-    """
 
     try:
         with wave.open(io.BytesIO(wav_bytes), "rb") as wav:
@@ -37,9 +27,6 @@ def extract_channels(wav_bytes: bytes) -> tuple[np.ndarray, np.ndarray]:
     samples = np.frombuffer(frames, dtype=np.int16)
 
     # WAV stereo samples are interleaved:
-    #
-    # caller, agent, caller, agent, caller, agent...
-    #
     stereo = samples.reshape(-1, 2)
 
     caller_audio = stereo[:, 0]

@@ -2,11 +2,7 @@ import io
 import wave
 
 
-EXPECTED_SAMPLE_RATE = 8000
-EXPECTED_CHANNELS = 2
-
-
-def validate_wav(wav_bytes: bytes) -> None:
+def validate_wav(wav_bytes: bytes, EXPECTED_SAMPLE_RATE: int, EXPECTED_CHANNELS: int) -> None:
     if not wav_bytes:
         raise ValueError("Audio payload is empty")
 

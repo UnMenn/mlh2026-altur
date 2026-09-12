@@ -165,19 +165,7 @@ def _post_process_turns(
     return result
 
 
-def _merge_channel_turns(
-    turns: list[dict],
-    other_channel_turns: list[dict],
-) -> list[dict]:
-    """
-    Merge adjacent segments belonging to the same speaker.
-
-    A merge is allowed only when:
-
-    - the gap is short
-    - the other channel is not speaking during that gap
-    """
-
+def _merge_channel_turns(turns: list[dict], other_channel_turns: list[dict]) -> list[dict]:
     if len(turns) <= 1:
         return turns
 
@@ -211,11 +199,7 @@ def _merge_channel_turns(
     return merged
 
 
-def _other_channel_active(
-    start: float,
-    end: float,
-    turns: list[dict],
-) -> bool:
+def _other_channel_active(start: float, end: float, turns: list[dict],) -> bool:
     """
     Return True if the opposite channel has speech overlapping
     the specified interval.
@@ -225,11 +209,6 @@ def _other_channel_active(
         return False
 
     for turn in turns:
-        # Intervals overlap when:
-        #
-        # other_start < end
-        # and
-        # other_end > start
 
         if (
             turn["start"] < end

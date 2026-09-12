@@ -3,13 +3,6 @@ import binascii
 
 
 def decode_base64_wav(audio: str) -> bytes:
-    """
-    Decode a Base64-encoded WAV payload.
-
-    Accepts either raw Base64 or a data URI such as:
-    data:audio/wav;base64,...
-    """
-
     if not audio:
         raise ValueError("Audio payload is empty")
 
