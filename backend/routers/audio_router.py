@@ -1,7 +1,9 @@
-from fastapi import APIRouter, File, HTTPException, UploadFile
+from fastapi import FastAPI, APIRouter, File, HTTPException, UploadFile
 from backend.utils.audio_processor import extract_segments_from_turns, extract_features_from_numpy
 from pathlib import Path
 import joblib
+import binascii
+import base64
 
 # Definir la ruta absoluta o relativa al archivo del modelo
 MODEL_PATH = Path(__file__).resolve().parent.parent / "acoustic_logistic_regression.model"
@@ -12,69 +14,108 @@ from backend.audio.validation import validate_wav
 from backend.audio.channels import extract_channels
 from backend.audio.turns import detect_turns
 
+from pydantic import BaseModel
+
 # Inicializamos el router para este módulo específico
 router = APIRouter()
 
-@router.post("/process")
-async def process_audio(file: UploadFile = File(...)):
-    if not file.filename.endswith(".wav"):
+class AudioRequest(BaseModel):
+    call_id: str
+    audio_base64: str
+    sample_rate: int
+    channels: int
+    
+
+@router.post("/detect")
+async def process_audio(request: AudioRequest):
+    EXPECTED_SAMPLE_RATE = 8000
+    EXPECTED_CHANNELS = 2
+
+    if request.sample_rate != EXPECTED_SAMPLE_RATE:
         raise HTTPException(
-            status_code=400, detail="Formato inválido. Se requiere un archivo .wav"
+            status_code=400,
+            detail=f"Sample rate inválido. Se esperaba {EXPECTED_SAMPLE_RATE} Hz.",
+        )
+
+    if request.channels != EXPECTED_CHANNELS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Número de canales inválido. Se esperaban {EXPECTED_CHANNELS}.",
         )
 
     try:
-        print(f"Procesando archivo: {file.filename}")
-        # 1. Leer y decodificar el payload base64 / bytes
-        wav_bytes = await file.read()
-        print(f"Archivo WAV recibido: {file.filename}, tamaño: {len(wav_bytes)} bytes")
-        #wav_bytes = decode_base64_wav(raw_data)
-        
-        # 2. Validar formato (8 kHz, estéreo)
-        EXPECTED_SAMPLE_RATE = 8000
-        EXPECTED_CHANNELS = 2
-        
-        # 3. Separar canales estéreo (Canal 0 = caller, Canal 1 = agent)
-        validate_wav(wav_bytes, EXPECTED_SAMPLE_RATE, EXPECTED_CHANNELS)
-        print("Archivo WAV validado correctamente.")
+        # Decode Base64 -> WAV bytes
+        try:
+            wav_bytes = base64.b64decode(
+                request.audio_base64,
+                validate=True,
+            )
+        except (binascii.Error, ValueError) as e:
+            raise HTTPException(
+                status_code=400,
+                detail=f"audio_base64 inválido: {str(e)}",
+            )
+
+        # Validate WAV
+        validate_wav(
+            wav_bytes,
+            request.sample_rate,
+            request.channels,
+        )
+
+        # Separate stereo channels
         caller_audio, agent_audio = extract_channels(wav_bytes)
-        
-        # 4. Detectar turnos usando Silero VAD
-        print("Detectando turnos de conversación...", flush=True)
-        turns_result = detect_turns(caller_audio, agent_audio)
-        print(f"Turnos detectados: {len(turns_result.get('turns', []))}", flush=True)
-        
-        # 5. Filtrar y extraer únicamente los segmentos del canal 0 (caller)
+
+        # Detect conversation turns
+        turns_result = detect_turns(
+            caller_audio,
+            agent_audio,
+        )
+
+        # Keep only caller/channel 0 segments
         channel_0_segments = [
-            (t["start"], t["end"]) 
-            for t in turns_result["turns"] 
+            (t["start"], t["end"])
+            for t in turns_result["turns"]
             if t["channel"] == 0
         ]
-        
-        print(f"Segmentos detectados en el canal 0: {channel_0_segments}")
-        # Concatenar las porciones de audio correspondientes al canal 0
-        processed_audio = extract_segments_from_turns(caller_audio, EXPECTED_SAMPLE_RATE, channel_0_segments)
-        
 
-        X_input = extract_features_from_numpy(processed_audio, sr=EXPECTED_SAMPLE_RATE)
+        # Concatenate caller segments
+        processed_audio = extract_segments_from_turns(
+            caller_audio,
+            EXPECTED_SAMPLE_RATE,
+            channel_0_segments,
+        )
 
+        # Extract features
+        X_input = extract_features_from_numpy(
+            processed_audio,
+            sr=EXPECTED_SAMPLE_RATE,
+        )
+
+        # Model prediction
         prediction = int(model.predict(X_input)[0])
-        probability = float(model.predict_proba(X_input)[0][1])
-
-        fraud_risk_score = probability
+        synthetic_probability = float(
+            model.predict_proba(X_input)[0][1]
+        )
 
         return {
-            "filename": file.filename,
-            "prediction": "synthetic" if prediction == 1 else "human",
-            "synthetic_probability": fraud_risk_score,
-            "channel_status": (
-                "suspicious" if fraud_risk_score > 0.5 else "normal"
-            ),
+            "is_synthetic": prediction == 1,
+            "confidence": round(synthetic_probability, 2),
         }
 
+    except HTTPException:
+        raise
+
     except ValueError as ve:
-        raise HTTPException(status_code=400, detail=str(ve))
-    except Exception as e:
         raise HTTPException(
-            status_code=500, detail=f"Error interno procesando el audio: {str(e)}"
+            status_code=400,
+            detail=str(ve),
         )
-      
+
+    except Exception as e:
+        print(e)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error interno procesando el audio: {str(e)}",
+        )
+

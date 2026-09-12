@@ -19,7 +19,7 @@ app.add_middleware(
   allow_headers=["*"],
 )
 
-router = APIRouter(prefix="/api")
+router = APIRouter()
 
 router.include_router(audio_router.router, tags=["Audio Analysis"])
 app.include_router(router)
