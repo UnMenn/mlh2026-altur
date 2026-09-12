@@ -1,5 +1,6 @@
 import { MessageCircleMore } from "lucide-react";
 import { Modal } from "../ui/Modal";
+import { WhatsAppQR } from "./WhatsAppQR";
 
 type Props = {
   open: boolean;
@@ -29,7 +30,9 @@ export function WhatsAppModal({
         </p>
 
         <div className="qr-demo">
-          <div className="qr-demo__pattern" />
+          <WhatsAppQR
+            phoneNumber="528131023582"
+          />
         </div>
 
         <div className="connection-status">
