@@ -1,3 +1,9 @@
+@property --reveal {
+  syntax: "<percentage>";
+  initial-value: 0%;
+  inherits: false;
+}
+
 :root {
   --altur-blue: #2f64f7;
   --altur-blue-deep: #6f84e8;
@@ -520,6 +526,32 @@
   flex-shrink: 0;
 
   border-radius: 50%;
+}
+
+.graficaAnimada {
+  --reveal: 0%;
+
+  -webkit-mask: conic-gradient(
+    #000 0% var(--reveal),
+    transparent var(--reveal) 100%
+  );
+
+  mask: conic-gradient(
+    #000 0% var(--reveal),
+    transparent var(--reveal) 100%
+  );
+
+  animation: aparecerGrafica 2s ease-out forwards;
+}
+
+@keyframes aparecerGrafica {
+  from {
+    --reveal: 0%;
+  }
+
+  to {
+    --reveal: 100%;
+  }
 }
 
 /* CHART DATA */
