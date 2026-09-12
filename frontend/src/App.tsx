@@ -1,37 +1,26 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+
+import {
+  analyzeAudio,
+  type AudioAnalysisResponse,
+} from './services/audioAnalysis'
+
 import './App.css'
 
 function App() {
   const [audios, setAudios] = useState<File[]>([])
-  const [mostrarResultado, setMostrarResultado] = useState(false)
-  const [analizando, setAnalizando] = useState(false)
-  const [error, setError] = useState('')
+  const [resultados, setResultados] =
+    useState<AudioAnalysisResponse[]>([])
 
-  // Datos temporales para probar la interfaz
-  const datosPrueba = [
-    {
-      esHumano: true,
-      acustica: 35,
-      comportamiento: 25,
-      semantica: 20,
-      contexto: 20,
-    },
-    {
-      esHumano: false,
-      acustica: 15,
-      comportamiento: 30,
-      semantica: 25,
-      contexto: 30,
-    },
-    {
-      esHumano: true,
-      acustica: 40,
-      comportamiento: 20,
-      semantica: 25,
-      contexto: 15,
-    },
-  ]
+  const [mostrarResultado, setMostrarResultado] =
+    useState(false)
+
+  const [analizando, setAnalizando] =
+    useState(false)
+
+  const [error, setError] =
+    useState('')
 
   const seleccionarAudios = (
     e: React.ChangeEvent<HTMLInputElement>
@@ -44,7 +33,10 @@ function App() {
       setError(
         'Puedes analizar un máximo de 3 audios a la vez.'
       )
+
       setAudios([])
+      setResultados([])
+
       return
     }
 
@@ -58,35 +50,69 @@ function App() {
       setError(
         'Solo puedes subir archivos de audio.'
       )
+
       setAudios([])
+      setResultados([])
+
       return
     }
 
     setError('')
+    setResultados([])
     setAudios(archivosSeleccionados)
   }
 
-  const analizarAudios = () => {
+  const analizarAudios = async () => {
     if (audios.length === 0) {
       setError(
         'Selecciona al menos un archivo de audio.'
       )
+
       return
     }
 
-    setError('')
-    setAnalizando(true)
+    try {
+      setError('')
+      setAnalizando(true)
 
-    // Simula el tiempo de análisis
-    setTimeout(() => {
-      setAnalizando(false)
+      /*
+       * Envía todos los audios seleccionados
+       * al endpoint /api/process.
+       */
+      const respuestas =
+        await Promise.all(
+          audios.map((audio) =>
+            analyzeAudio(audio)
+          )
+        )
+
+      console.log(
+        'Resultados de la API:',
+        respuestas
+      )
+
+      setResultados(respuestas)
       setMostrarResultado(true)
-    }, 2000)
+    } catch (err) {
+      console.error(
+        'Error analizando audios:',
+        err
+      )
+
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Ocurrió un error durante el análisis.'
+      )
+    } finally {
+      setAnalizando(false)
+    }
   }
 
   const nuevoAnalisis = () => {
     setMostrarResultado(false)
     setAudios([])
+    setResultados([])
     setError('')
     setAnalizando(false)
   }
@@ -96,14 +122,18 @@ function App() {
       <header className="barraSuperior">
         <h2>
           Verificación de Audio
-          <span className="brand-dot">.</span>
+          <span className="brand-dot">
+            .
+          </span>
         </h2>
       </header>
 
       {!mostrarResultado ? (
         <section className="contenidoPrincipal">
           <div className="textoPrincipal">
-            <span>ANÁLISIS DE LLAMADAS</span>
+            <span>
+              ANÁLISIS DE LLAMADAS
+            </span>
 
             <h1>
               Sube tus llamadas
@@ -180,7 +210,7 @@ function App() {
 
             {analizando && (
               <div className="estadoCarga">
-                <div className="circuloCarga"></div>
+                <div className="circuloCarga" />
 
                 <p>
                   Analizando llamadas...
@@ -211,9 +241,10 @@ function App() {
           <div className="encabezadoResultado">
             <div>
               <p className="textoResultado">
-                Se analizaron {audios.length}{' '}
+                Se analizaron{' '}
+                {resultados.length}{' '}
                 audio
-                {audios.length > 1
+                {resultados.length !== 1
                   ? 's'
                   : ''}
               </p>
@@ -232,15 +263,25 @@ function App() {
           </div>
 
           <div className="listaResultados">
-            {audios.map(
-              (audio, index) => {
-                const resultado =
-                  datosPrueba[index]
+            {resultados.map(
+              (resultado, index) => {
+                const esSintetico =
+                  resultado.prediction
+                    .toLowerCase() ===
+                  'synthetic'
+
+                const probabilidadSintetica =
+                  resultado.synthetic_probability *
+                  100
+
+                const probabilidadHumana =
+                  100 -
+                  probabilidadSintetica
 
                 return (
                   <div
                     className="tarjetaAnalisis"
-                    key={index}
+                    key={`${resultado.filename}-${index}`}
                   >
                     <div className="encabezadoAnalisis">
                       <span>
@@ -248,111 +289,93 @@ function App() {
                       </span>
 
                       <h2>
-                        {audio.name}
+                        {resultado.filename}
                       </h2>
                     </div>
 
                     <h1 className="resultadoAudio">
-                      {resultado.esHumano
-                        ? 'ES HUMANO'
-                        : 'NO ES HUMANO'}
+                      {esSintetico
+                        ? 'AUDIO SINTÉTICO'
+                        : 'AUDIO HUMANO'}
                     </h1>
 
                     <div className="seccionGrafica">
                       <div
                         className="graficaPastel"
                         style={{
-                          background: `conic-gradient(
-                            #292929 0% ${resultado.acustica}%,
-
-                            #666666 ${resultado.acustica}% ${
-                              resultado.acustica +
-                              resultado.comportamiento
-                            }%,
-
-                            #999999 ${
-                              resultado.acustica +
-                              resultado.comportamiento
-                            }% ${
-                              resultado.acustica +
-                              resultado.comportamiento +
-                              resultado.semantica
-                            }%,
-
-                            #cccccc ${
-                              resultado.acustica +
-                              resultado.comportamiento +
-                              resultado.semantica
-                            }% 100%
-                          )`,
+                          background: `
+                            conic-gradient(
+                              #292929 0%
+                              ${probabilidadSintetica}%,
+                              #cccccc
+                              ${probabilidadSintetica}%
+                              100%
+                            )
+                          `,
                         }}
                       />
 
                       <div className="datosGrafica">
                         <div className="datoGrafica">
-                          <span className="colorDato colorAcustica"></span>
+                          <span className="colorDato colorAcustica" />
 
                           <div>
                             <p>
-                              Detección acústica
+                              Probabilidad sintética
                             </p>
 
                             <strong>
-                              {
-                                resultado.acustica
-                              }
+                              {probabilidadSintetica.toFixed(
+                                2
+                              )}
                               %
                             </strong>
                           </div>
                         </div>
 
                         <div className="datoGrafica">
-                          <span className="colorDato colorComportamiento"></span>
+                          <span className="colorDato colorContexto" />
 
                           <div>
                             <p>
-                              Comportamiento
+                              Probabilidad humana
                             </p>
 
                             <strong>
-                              {
-                                resultado.comportamiento
-                              }
+                              {probabilidadHumana.toFixed(
+                                2
+                              )}
                               %
                             </strong>
                           </div>
                         </div>
 
                         <div className="datoGrafica">
-                          <span className="colorDato colorSemantica"></span>
+                          <span className="colorDato colorComportamiento" />
 
                           <div>
                             <p>
-                              Semántica
+                              Predicción
                             </p>
 
                             <strong>
-                              {
-                                resultado.semantica
-                              }
-                              %
+                              {esSintetico
+                                ? 'Sintético'
+                                : resultado.prediction}
                             </strong>
                           </div>
                         </div>
 
                         <div className="datoGrafica">
-                          <span className="colorDato colorContexto"></span>
+                          <span className="colorDato colorSemantica" />
 
                           <div>
                             <p>
-                              Contexto
+                              Estado del canal
                             </p>
 
                             <strong>
-                              {
-                                resultado.contexto
-                              }
-                              %
+                              {resultado.channel_status}
                             </strong>
                           </div>
                         </div>
