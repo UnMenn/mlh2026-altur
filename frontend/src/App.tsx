@@ -1,5 +1,7 @@
 import { useState } from 'react'
+import { Link } from "react-router-dom";
 import './App.css'
+
 
 function App() {
   const [audio, setAudio] = useState<File | null>(null)
@@ -15,73 +17,83 @@ function App() {
   }
 
   return (
-    <main className="pagina">
+  <main className="pagina">
 
-      <header className="barraSuperior">
-        <h2>Verificación de Audio</h2>
-      </header>
+    <header className="barraSuperior">
+      <h2>
+        Verificación de Audio
+        <span className="brand-dot">.</span>
+      </h2>
+    </header>
 
-      {!mostrarResultado ? (
+    {!mostrarResultado ? (
+      <section className="contenidoPrincipal">
 
-        <section className="contenidoPrincipal">
+        <div className="textoPrincipal">
+          <span>ANÁLISIS DE LLAMADAS</span>
 
-          <div className="textoPrincipal">
-            <span>ANÁLISIS DE LLAMADAS</span>
+          <h1>
+            Sube una llamada
+            <br />
+            para analizarla.
+          </h1>
 
-            <h1>
-              Sube una llamada
-              <br />
-              para analizarla.
-            </h1>
+          <p>
+            Selecciona un archivo de audio para comenzar.
+          </p>
+
+          <Link
+            to="/demo"
+            className="live-demo-link"
+          >
+            Probar en vivo
+          </Link>
+        </div>
+
+        <div className="tarjetaAudio">
+
+          <label className="zonaSubirAudio">
+            <input
+              type="file"
+              accept="audio/*"
+              onChange={(e) =>
+                setAudio(e.target.files?.[0] || null)
+              }
+            />
+
+            <div className="iconoAudio">♪</div>
+
+            <h3>
+              {audio ? audio.name : "Sube tu audio"}
+            </h3>
 
             <p>
-              Selecciona un archivo de audio para comenzar.
+              {audio
+                ? "Archivo listo para analizar"
+                : "Arrastra un archivo aquí o selecciónalo desde tu computadora"}
             </p>
-          </div>
 
-          <div className="tarjetaAudio">
+            <span className="botonArchivo">
+              {audio
+                ? "Cambiar archivo"
+                : "Elegir archivo"}
+            </span>
+          </label>
 
-            <label className="zonaSubirAudio">
+          <button
+            className="botonAnalizar"
+            disabled={!audio}
+            onClick={() =>
+              setMostrarResultado(true)
+            }
+          >
+            Analizar audio
+          </button>
 
-              <input
-                type="file"
-                accept="audio/*"
-                onChange={(e) =>
-                  setAudio(e.target.files?.[0] || null)
-                }
-              />
+        </div>
 
-              <div className="iconoAudio">♪</div>
-
-              <h3>
-                {audio ? audio.name : 'Sube tu audio'}
-              </h3>
-
-              <p>
-                {audio
-                  ? 'Archivo listo para analizar'
-                  : 'Arrastra un archivo aquí o selecciónalo desde tu computadora'}
-              </p>
-
-              <span className="botonArchivo">
-                {audio ? 'Cambiar archivo' : 'Elegir archivo'}
-              </span>
-
-            </label>
-
-            <button
-              className="botonAnalizar"
-              disabled={!audio}
-              onClick={() => setMostrarResultado(true)}
-            >
-              Analizar audio →
-            </button>
-
-          </div>
-
-        </section>
-
-      ) : (
+      </section>
+    ) : (
 
         <section className="resultados">
 

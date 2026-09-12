@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+
 import { Header } from "../components/layout/Header";
 import { DemoShell } from "../components/layout/DemoShell";
 
@@ -27,6 +28,7 @@ export function DemoPage() {
       document.body.classList.remove("altur-demo-route");
     };
   }, []);
+
   const [channel, setChannel] =
     useState<Channel | null>(null);
 
@@ -56,37 +58,41 @@ export function DemoPage() {
       <DemoShell>
         <Header />
 
-        <main className="hero">
-          <div className="hero__eyebrow">
-            Centro de atención automatizado
-          </div>
+        <main className="demo-content">
+          <section className="demo-intro">
+            <span className="demo-label">
+              CENTRO DE ATENCIÓN AUTOMATIZADO
+            </span>
 
-          <VoiceOrb
-            state={agentState}
-            onClick={cycleOrb}
-          />
+            <h1>
+              ¿Cómo quieres
+              <br />
+              continuar tu caso?
+            </h1>
 
-          <OrbStatus state={agentState} />
+            <p>
+              Un mismo asistente, una misma conversación,
+              en cualquier canal.
+            </p>
+          </section>
 
-          <h1>
-            ¿Cómo quieres
-            <br />
-            continuar?
-          </h1>
+          <section className="orb-card">
+            <VoiceOrb
+              state={agentState}
+              onClick={cycleOrb}
+            />
 
-          <p className="hero__description">
-            Un mismo asistente, una misma conversación,
-            en cualquier canal.
-          </p>
+            <OrbStatus state={agentState} />
 
-          <ChannelGrid
-            onSelect={setChannel}
-          />
-
-          <p className="hero__hint">
-            Toca la esfera para probar sus estados.
-          </p>
+            <span className="orb-caption">
+              Toca la esfera para probar sus estados
+            </span>
+          </section>
         </main>
+
+        <section className="channels-section">
+          <ChannelGrid onSelect={setChannel} />
+        </section>
 
         <WhatsAppModal
           open={channel === "whatsapp"}
