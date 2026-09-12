@@ -2,16 +2,78 @@ import { useState } from 'react'
 import './App.css'
 
 function App() {
-  const [audio, setAudio] = useState<File | null>(null)
+  const [audios, setAudios] = useState<File[]>([])
   const [mostrarResultado, setMostrarResultado] = useState(false)
+  const [analizando, setAnalizando] = useState(false)
+  const [error, setError] = useState('')
 
   // Datos temporales para probar la interfaz
-  const datosPrueba = {
-    esHumano: true,
-    acustica: 35,
-    comportamiento: 25,
-    semantica: 20,
-    contexto: 20
+  const datosPrueba = [
+    {
+      esHumano: true,
+      acustica: 35,
+      comportamiento: 25,
+      semantica: 20,
+      contexto: 20
+    },
+    {
+      esHumano: false,
+      acustica: 15,
+      comportamiento: 30,
+      semantica: 25,
+      contexto: 30
+    },
+    {
+      esHumano: true,
+      acustica: 40,
+      comportamiento: 20,
+      semantica: 25,
+      contexto: 15
+    }
+  ]
+
+  const seleccionarAudios = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const archivosSeleccionados = Array.from(e.target.files || [])
+
+    if (archivosSeleccionados.length > 3) {
+      setError('Puedes analizar un máximo de 3 audios a la vez.')
+      setAudios([])
+      return
+    }
+
+    const archivosInvalidos = archivosSeleccionados.filter(
+      (archivo) => !archivo.type.startsWith('audio/')
+    )
+
+    if (archivosInvalidos.length > 0) {
+      setError('Solo puedes subir archivos de audio.')
+      setAudios([])
+      return
+    }
+
+    setError('')
+    setAudios(archivosSeleccionados)
+  }
+
+  const analizarAudios = () => {
+    if (audios.length === 0) {
+      setError('Selecciona al menos un archivo de audio.')
+      return
+    }
+
+    setError('')
+    setAnalizando(true)
+
+    setTimeout(() => {
+      setAnalizando(false)
+      setMostrarResultado(true)
+    }, 2000)
+  }
+
+  const nuevoAnalisis = () => {
+    setMostrarResultado(false)
+    setAudios([])
+    setError('')
   }
 
   return (
@@ -26,17 +88,19 @@ function App() {
         <section className="contenidoPrincipal">
 
           <div className="textoPrincipal">
+
             <span>ANÁLISIS DE LLAMADAS</span>
 
             <h1>
-              Sube una llamada
+              Sube tus llamadas
               <br />
-              para analizarla.
+              para analizarlas.
             </h1>
 
             <p>
-              Selecciona un archivo de audio para comenzar.
+              Selecciona hasta 3 archivos de audio para comenzar.
             </p>
+
           </div>
 
           <div className="tarjetaAudio">
@@ -46,35 +110,70 @@ function App() {
               <input
                 type="file"
                 accept="audio/*"
-                onChange={(e) =>
-                  setAudio(e.target.files?.[0] || null)
-                }
+                multiple
+                onChange={seleccionarAudios}
               />
 
               <div className="iconoAudio">♪</div>
 
               <h3>
-                {audio ? audio.name : 'Sube tu audio'}
+                {audios.length > 0
+                  ? `${audios.length} archivos seleccionados`
+                  : 'Sube tus audios'}
               </h3>
 
               <p>
-                {audio
-                  ? 'Archivo listo para analizar'
-                  : 'Arrastra un archivo aquí o selecciónalo desde tu computadora'}
+                {audios.length > 0
+                  ? 'Archivos listos para analizar'
+                  : 'Arrastra hasta 3 archivos aquí o selecciónalos desde tu computadora'}
               </p>
 
+              {audios.length > 0 && (
+                <div className="listaArchivos">
+
+                  {audios.map((audio, index) => (
+                    <p key={index}>
+                      {audio.name}
+                    </p>
+                  ))}
+
+                </div>
+              )}
+
               <span className="botonArchivo">
-                {audio ? 'Cambiar archivo' : 'Elegir archivo'}
+                {audios.length > 0
+                  ? 'Cambiar archivos'
+                  : 'Elegir archivos'}
               </span>
 
             </label>
 
+            {error && (
+              <p className="mensajeError">
+                {error}
+              </p>
+            )}
+
+            {analizando && (
+              <div className="estadoCarga">
+
+                <div className="circuloCarga"></div>
+
+                <p>
+                  Analizando audios...
+                </p>
+
+              </div>
+            )}
+
             <button
               className="botonAnalizar"
-              disabled={!audio}
-              onClick={() => setMostrarResultado(true)}
+              disabled={audios.length === 0 || analizando}
+              onClick={analizarAudios}
             >
-              Analizar audio →
+              {analizando
+                ? 'Analizando...'
+                : 'Analizar audios →'}
             </button>
 
           </div>
@@ -86,114 +185,154 @@ function App() {
         <section className="resultados">
 
           <span className="etiquetaResultado">
-            RESULTADO DEL ANÁLISIS
+            RESULTADOS DEL ANÁLISIS
           </span>
 
           <div className="encabezadoResultado">
 
             <div>
+
               <p className="textoResultado">
-                Resultado de la llamada
+                Se analizaron {audios.length} audio
+                {audios.length > 1 ? 's' : ''}
               </p>
 
               <h1 className="tituloResultado">
-                {datosPrueba.esHumano
-                  ? 'ES HUMANO'
-                  : 'NO ES HUMANO'}
+                Resultados
               </h1>
+
             </div>
 
             <button
               className="botonNuevoAnalisis"
-              onClick={() => {
-                setMostrarResultado(false)
-                setAudio(null)
-              }}
+              onClick={nuevoAnalisis}
             >
-              Analizar otra llamada
+              Analizar otras llamadas
             </button>
 
           </div>
 
-          <div className="tarjetaAnalisis">
+          <div className="listaResultados">
 
-            <div className="encabezadoAnalisis">
-              <span>ANÁLISIS DE DETECCIÓN</span>
-              <h2>Datos de la llamada</h2>
-            </div>
+            {audios.map((audio, index) => {
+              const resultado = datosPrueba[index]
 
-            <div className="seccionGrafica">
+              return (
 
-              <div
-                className="graficaPastel"
-                style={{
-                  background: `conic-gradient(
-                    #292929 0% ${datosPrueba.acustica}%,
+                <div className="tarjetaAnalisis" key={index}>
 
-                    #666666 ${datosPrueba.acustica}% ${
-                      datosPrueba.acustica +
-                      datosPrueba.comportamiento
-                    }%,
+                  <div className="encabezadoAnalisis">
 
-                    #999999 ${
-                      datosPrueba.acustica +
-                      datosPrueba.comportamiento
-                    }% ${
-                      datosPrueba.acustica +
-                      datosPrueba.comportamiento +
-                      datosPrueba.semantica
-                    }%,
+                    <span>
+                      ANÁLISIS DE DETECCIÓN
+                    </span>
 
-                    #cccccc ${
-                      datosPrueba.acustica +
-                      datosPrueba.comportamiento +
-                      datosPrueba.semantica
-                    }% 100%
-                  )`
-                }}
-              />
+                    <h2>
+                      {audio.name}
+                    </h2>
 
-              <div className="datosGrafica">
-
-                <div className="datoGrafica">
-                  <span className="colorDato colorAcustica"></span>
-
-                  <div>
-                    <p>Detección acústica</p>
-                    <strong>{datosPrueba.acustica}%</strong>
                   </div>
-                </div>
 
-                <div className="datoGrafica">
-                  <span className="colorDato colorComportamiento"></span>
+                  <h1 className="resultadoAudio">
 
-                  <div>
-                    <p>Comportamiento</p>
-                    <strong>{datosPrueba.comportamiento}%</strong>
+                    {resultado.esHumano
+                      ? 'ES HUMANO'
+                      : 'NO ES HUMANO'}
+
+                  </h1>
+
+                  <div className="seccionGrafica">
+
+                    <div
+                      className="graficaPastel"
+                      style={{
+                        background: `conic-gradient(
+                          #292929 0% ${resultado.acustica}%,
+
+                          #666666 ${resultado.acustica}% ${
+                            resultado.acustica +
+                            resultado.comportamiento
+                          }%,
+
+                          #999999 ${
+                            resultado.acustica +
+                            resultado.comportamiento
+                          }% ${
+                            resultado.acustica +
+                            resultado.comportamiento +
+                            resultado.semantica
+                          }%,
+
+                          #cccccc ${
+                            resultado.acustica +
+                            resultado.comportamiento +
+                            resultado.semantica
+                          }% 100%
+                        )`
+                      }}
+                    />
+
+                    <div className="datosGrafica">
+
+                      <div className="datoGrafica">
+
+                        <span className="colorDato colorAcustica"></span>
+
+                        <div>
+                          <p>Detección acústica</p>
+                          <strong>
+                            {resultado.acustica}%
+                          </strong>
+                        </div>
+
+                      </div>
+
+                      <div className="datoGrafica">
+
+                        <span className="colorDato colorComportamiento"></span>
+
+                        <div>
+                          <p>Comportamiento</p>
+                          <strong>
+                            {resultado.comportamiento}%
+                          </strong>
+                        </div>
+
+                      </div>
+
+                      <div className="datoGrafica">
+
+                        <span className="colorDato colorSemantica"></span>
+
+                        <div>
+                          <p>Semántica</p>
+                          <strong>
+                            {resultado.semantica}%
+                          </strong>
+                        </div>
+
+                      </div>
+
+                      <div className="datoGrafica">
+
+                        <span className="colorDato colorContexto"></span>
+
+                        <div>
+                          <p>Contexto</p>
+                          <strong>
+                            {resultado.contexto}%
+                          </strong>
+                        </div>
+
+                      </div>
+
+                    </div>
+
                   </div>
+
                 </div>
-
-                <div className="datoGrafica">
-                  <span className="colorDato colorSemantica"></span>
-
-                  <div>
-                    <p>Semántica</p>
-                    <strong>{datosPrueba.semantica}%</strong>
-                  </div>
-                </div>
-
-                <div className="datoGrafica">
-                  <span className="colorDato colorContexto"></span>
-
-                  <div>
-                    <p>Contexto</p>
-                    <strong>{datosPrueba.contexto}%</strong>
-                  </div>
-                </div>
-
-              </div>
-
-            </div>
+              )
+            })}
 
           </div>
 

@@ -30,7 +30,7 @@ body {
   color: #292929;
 }
 
-/* PANTALLA PARA SUBIR AUDIO */
+/* PANTALLA PARA SUBIR AUDIOS */
 
 .contenidoPrincipal {
   max-width: 1400px;
@@ -65,7 +65,7 @@ body {
   color: #666666;
 }
 
-/* TARJETA PARA SUBIR AUDIO */
+/* TARJETA PARA SUBIR AUDIOS */
 
 .tarjetaAudio {
   padding: 25px;
@@ -121,6 +121,19 @@ body {
   line-height: 1.5;
 }
 
+/* LISTA DE ARCHIVOS */
+
+.listaArchivos {
+  width: 100%;
+  margin-top: 18px;
+}
+
+.listaArchivos p {
+  margin: 5px 0;
+  font-size: 14px;
+  color: #555555;
+}
+
 .botonArchivo {
   margin-top: 25px;
   padding: 11px 20px;
@@ -128,6 +141,45 @@ body {
   background: #292929;
   color: #ffffff;
 }
+
+/* MENSAJE DE ERROR */
+
+.mensajeError {
+  margin: 15px 0 0;
+  color: #b00020;
+  font-size: 14px;
+  text-align: center;
+}
+
+/* ESTADO DE CARGA */
+
+.estadoCarga {
+  margin-top: 20px;
+  text-align: center;
+  color: #666666;
+}
+
+.estadoCarga p {
+  margin: 10px 0 0;
+}
+
+.circuloCarga {
+  width: 28px;
+  height: 28px;
+  margin: auto;
+  border: 3px solid #dddddd;
+  border-top: 3px solid #292929;
+  border-radius: 50%;
+  animation: girar 1s linear infinite;
+}
+
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* BOTÓN ANALIZAR */
 
 .botonAnalizar {
   width: 100%;
@@ -181,14 +233,14 @@ body {
 .tituloResultado {
   margin: 0;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: 72px;
+  font-size: 65px;
   line-height: 1;
   font-weight: 400;
   letter-spacing: -3px;
   color: #555555;
 }
 
-/* BOTÓN PARA ANALIZAR OTRA LLAMADA */
+/* BOTÓN NUEVO ANÁLISIS */
 
 .botonNuevoAnalisis {
   padding: 12px 20px;
@@ -204,7 +256,15 @@ body {
   background: #444444;
 }
 
-/* TARJETA DEL ANÁLISIS */
+/* LISTA DE RESULTADOS */
+
+.listaResultados {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+/* TARJETA DE CADA AUDIO */
 
 .tarjetaAnalisis {
   padding: 30px;
@@ -220,16 +280,25 @@ body {
 
 .encabezadoAnalisis h2 {
   margin: 8px 0 0;
-  font-size: 25px;
+  font-size: 23px;
   font-weight: 500;
+  color: #555555;
+}
+
+.resultadoAudio {
+  margin: 25px 0 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 50px;
+  font-weight: 400;
+  letter-spacing: -2px;
   color: #555555;
 }
 
 /* GRÁFICA DE PASTEL */
 
 .seccionGrafica {
-  margin-top: 40px;
-  padding: 30px 0;
+  margin-top: 35px;
+  padding: 20px 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -237,8 +306,8 @@ body {
 }
 
 .graficaPastel {
-  width: 280px;
-  height: 280px;
+  width: 250px;
+  height: 250px;
   border-radius: 50%;
   flex-shrink: 0;
 }
@@ -291,9 +360,10 @@ body {
   font-size: 20px;
 }
 
-/* RESPONSIVE */
+/* PARA CELULAR */
 
 @media (max-width: 800px) {
+
   .contenidoPrincipal {
     grid-template-columns: 1fr;
     padding: 60px 7%;
@@ -317,17 +387,21 @@ body {
     font-size: 50px;
   }
 
+  .resultadoAudio {
+    font-size: 40px;
+  }
+
   .seccionGrafica {
     flex-direction: column;
     gap: 40px;
   }
 
   .graficaPastel {
-    width: 230px;
-    height: 230px;
+    width: 220px;
+    height: 220px;
   }
 
   .datosGrafica {
     width: 100%;
   }
-} 
+}
