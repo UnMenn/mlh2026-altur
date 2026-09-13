@@ -58,37 +58,48 @@ body.altur-demo-route #root {
    ========================================= */
 
 .demo-page .header {
-  width: min(1180px, calc(100% - 48px));
-  height: 80px;
-
-  margin: 0 auto;
-
+  height: 70px;
+  width: 100%;
+  padding: 0 8%;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  border-bottom: 1px solid #a29f9f;
 }
 
-.demo-page .brand {
-  font-size: 26px;
-  font-weight: 700;
-  letter-spacing: -0.06em;
+.demo-page .header__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.demo-page .brand span {
-  color: var(--altur-blue-deep);
-}
+.demo-page .back-to-analyzer {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 
-.demo-page .demo-pill {
   padding: 8px 14px;
 
   border: 1px solid var(--altur-border);
   border-radius: 999px;
 
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--altur-surface);
+  color: var(--altur-text);
 
-  color: var(--altur-muted);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
 
-  font-size: 12px;
+  transition:
+    transform 160ms ease,
+    background 160ms ease,
+    border-color 160ms ease;
+}
+
+.demo-page .back-to-analyzer:hover {
+  transform: translateY(-1px);
+  background: #f8f7f4;
+  border-color: #d5d1ca;
 }
 
 /* =========================================
@@ -150,6 +161,7 @@ body.altur-demo-route #root {
 
   font-size: 12px;
 }
+
 
 /* =========================================
    VOICE ORB
