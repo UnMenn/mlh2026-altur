@@ -1,9 +1,11 @@
 from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
-from contextlib import asynccontextmanager
 import torch
 torch.set_num_threads(1)
+
+from contextlib import asynccontextmanager
+from backend.tiger_database import db
 
 from backend.routers import (
   audio_router, database_router
@@ -12,11 +14,11 @@ from backend.routers import (
 # Hypertable Architecture for Call Telemetry
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-  await db.connect()
-  yield
-  await db.close()
+    await db.connect()
+    yield
+    await db.close()
 
-app = FastAPI(title="Hackathon MTY - Audio Analysis")
+app = FastAPI(title="Hackathon MTY - Audio Analysis", lifespan=lifespan)
 
 # CORS for connection with Frontend React App
 app.add_middleware(
