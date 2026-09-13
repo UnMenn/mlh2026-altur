@@ -71,7 +71,7 @@ async def process_audio(background_tasks: BackgroundTasks, request: AudioRequest
         )
 
         # Separate stereo channels
-        caller_audio, agent_audio, _, _, _ = extract_channels(
+        caller_audio, agent_audio = extract_channels(
             wav_bytes, request.call_id)
 
         # Detect conversation turns
