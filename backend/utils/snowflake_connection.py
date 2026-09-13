@@ -22,22 +22,23 @@ DATABASE = os.getenv("SF_DATABASE")
 SCHEMA = os.getenv("SF_SCHEMA")
 KEY_PATH = os.getenv("SF_PRIVATE_KEY_PATH")
 
-# 1. Leer los bytes del archivo de la llave privada y desempaquetarla
+# 1. Read and unpack the private key bytes.
 with open(KEY_PATH, "rb") as key_file:
     p_key = serialization.load_pem_private_key(
         key_file.read(),
-        password=None,  # Como la creamos con -nocrypt, no lleva contraseña interna
+        # The key was created with -nocrypt and has no passphrase.
+        password=None,
         backend=default_backend()
     )
 
-# 2. Convertir la llave al formato de bytes DER que requiere estrictamente Snowflake
+# 2. Convert the key to the DER byte format required by Snowflake.
 private_key_bytes = p_key.private_bytes(
     encoding=serialization.Encoding.DER,
     format=serialization.PrivateFormat.PKCS8,
     encryption_algorithm=serialization.NoEncryption()
 )
 
-# 3. Configurar el diccionario usando 'private_key' en lugar de 'password'
+# 3. Configure the dictionary using private_key instead of password.
 SNOWFLAKE_CONFIG = {
     "user": SF_USER,
     "account": SF_ACCOUNT,
@@ -76,19 +77,19 @@ def snowflake_connection(call_id):
     path_c0 = INPUT_DIR / audio_canal0
     path_c1 = INPUT_DIR / audio_canal1
 
-    # Verificación de que el set de archivos exista en el directorio de trabajo
+    # Verify that the file set exists in the working directory.
     if not path_stereo.exists():
-        print(f"⚠️ Skipping Phase 2: Base file '{audio_completo}' not found.")
+        print(f"Skipping Phase 2: Base file '{audio_completo}' not found.")
         print(
-            f"💡 Asegúrate de tener {audio_completo}, {audio_canal0} y {audio_canal1} en tu carpeta.")
+            f"Make sure {audio_completo}, {audio_canal0}, and {audio_canal1} are in your folder.")
         cursor.close()
         conn.close()
         return
 
-    print(f"⏳ [Phase 2] Found audio set. Preparing upload to Snowflake...")
+    print(f"[Phase 2] Found audio set. Preparing upload to Snowflake...")
     try:
-        # 1. Subir cada uno de forma independiente a su Stage correspondiente con comillas de escape
-        print("🚀 Subiendo archivos divididos a sus respectivos Stages...")
+        # 1. Upload each file independently to its corresponding stage.
+        print("Uploading separated files to their respective stages...")
 
         abs_stereo = str(path_stereo.resolve()).replace("\\", "/")
         abs_c0 = str(path_c0.resolve()).replace("\\", "/")
@@ -100,16 +101,16 @@ def snowflake_connection(call_id):
             f"PUT 'file://{abs_c0}' @CHANNEL_0_AUDIO/ AUTO_COMPRESS=FALSE OVERWRITE=TRUE;")
         cursor.execute(
             f"PUT 'file://{abs_c1}' @CHANNEL_1_AUDIO/ AUTO_COMPRESS=FALSE OVERWRITE=TRUE;")
-        print("✅ Todos los canales individuales fueron subidos correctamente.")
+        print("All individual channels were uploaded successfully.")
 
-        # 2. Refrescar los directorios para que Snowflake indexe los nuevos nombres
-        print("🔄 Sincronizando catálogos de almacenamiento...")
+        # 2. Refresh the directories so Snowflake indexes the new names.
+        print("Synchronizing storage catalogs...")
         cursor.execute("ALTER STAGE AUDIO REFRESH;")
         cursor.execute("ALTER STAGE CHANNEL_0_AUDIO REFRESH;")
         cursor.execute("ALTER STAGE CHANNEL_1_AUDIO REFRESH;")
 
-        # 3. Ejecutar el pipeline de inserción cruzando los stages de forma dinámica
-        print(f"🤖 Triggering your Multi-Channel AI_TRANSCRIBE Pipeline...")
+        # 3. Run the insert pipeline across the stages dynamically.
+        print(f"Triggering your Multi-Channel AI_TRANSCRIBE Pipeline...")
 
         pipeline_query = f"""
         INSERT INTO audio_transcripts_raw (
@@ -121,10 +122,10 @@ def snowflake_connection(call_id):
         SELECT
             a.relative_path as file_name,
 
-            -- Transcribir el estéreo completo
+            -- Transcribe the full stereo file
             SNOWFLAKE.CORTEX.AI_TRANSCRIBE(TO_FILE(BUILD_SCOPED_FILE_URL(@AUDIO, a.relative_path))),
 
-            -- Buscamos dinámicamente el archivo correspondiente reemplazando el sufijo del nombre
+            -- Find the corresponding file by replacing the filename suffix
             SNOWFLAKE.CORTEX.AI_TRANSCRIBE(TO_FILE(BUILD_SCOPED_FILE_URL(@CHANNEL_0_AUDIO, REPLACE(a.relative_path, '_stereo.wav', '_caller.wav')))),
 
             SNOWFLAKE.CORTEX.AI_TRANSCRIBE(TO_FILE(BUILD_SCOPED_FILE_URL(@CHANNEL_1_AUDIO, REPLACE(a.relative_path, '_stereo.wav', '_agent.wav'))))
@@ -134,10 +135,10 @@ def snowflake_connection(call_id):
         AND a.relative_path NOT IN (SELECT file_name FROM audio_transcripts_raw);
         """
         cursor.execute(pipeline_query)
-        print("✅ Step 1: Multi-channel transcription saved to audio_transcripts_raw.")
+        print("Step 1: Multi-channel transcription saved to audio_transcripts_raw.")
 
-        # 4. Mover datos limpios a la tabla final
-        print("📊 Populating final audio_transcripts table...")
+        # 4. Move cleaned data to the final table.
+        print("Populating final audio_transcripts table...")
 
         insert_final_query = f"""
         INSERT INTO audio_transcripts (
@@ -160,7 +161,7 @@ def snowflake_connection(call_id):
         cursor.execute(insert_final_query)
         print("Step 2: Final table audio_transcripts populated successfully.")
 
-        # 5. Mostrar la vista previa de la división real en la consola
+        # 5. Show a preview of the actual channel split in the console.
         print(f"Fetching results for '{audio_completo}'...")
         cursor.execute(f"""
             SELECT file_name, full_text, channel0_text, channel1_text
@@ -170,16 +171,16 @@ def snowflake_connection(call_id):
         db_record = cursor.fetchone()
 
         if db_record is not None:
-            print("\n--- PIPELINE DE CANALES REPLICADO CON ÉXITO ---")
-            print(f"Archivo Estéreo: {db_record[0]}")
-            print(f"Texto Mezclado: {db_record[1][:120]}...")
-            print(f"Canal Caller (C0): {db_record[2][:120]}...")
-            print(f"Canal Agent  (C1): {db_record[3][:120]}...")
+            print("\n--- MULTI-CHANNEL PIPELINE COMPLETED SUCCESSFULLY ---")
+            print(f"Stereo File: {db_record[0]}")
+            print(f"Mixed Text: {db_record[1][:120]}...")
+            print(f"Caller Channel (C0): {db_record[2][:120]}...")
+            print(f"Agent Channel (C1): {db_record[3][:120]}...")
         else:
-            print(f"\nError: El registro se procesó pero no se pudo leer la fila final.")
-
+            print(
+                "\nError: The record was processed, but the final row could not be read.")
     except Exception as e:
-        print(f"Error durante la ejecución del pipeline SQL.")
+        print("Error while running the SQL pipeline.")
         print(f"Error Details: {e}")
 
     finally:
