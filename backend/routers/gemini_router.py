@@ -1,7 +1,7 @@
 import base64
 import binascii
-
-from fastapi import APIRouter, HTTPException
+from backend.tiger_database import db
+from fastapi import APIRouter, BackgroundTasks, HTTPException, BackgroundTasks
 from pydantic import BaseModel
 from backend.audio.channels import extract_channels
 from backend.audio.turns import detect_turns
@@ -20,7 +20,7 @@ class AudioRequest(BaseModel):
 
 
 @router.get("/gemini-response")
-async def get_gemini_response(request: AudioRequest):
+async def get_gemini_response(background_tasks: BackgroundTasks, request: AudioRequest):
     EXPECTED_SAMPLE_RATE = 8000
     EXPECTED_CHANNELS = 2
 
@@ -64,6 +64,15 @@ async def get_gemini_response(request: AudioRequest):
         try:
             gemini_response = contact_gemini(
                 full_text, channel0_text, channel1_text)
+
+            background_tasks.add_task(
+                db.log_call_telemetry,
+                filename=request.call_id,
+                probability=0.5,
+                status="no",
+                segments_count=2
+            )
+
             return {
                 "full_text": full_text,
                 "channel0_text": channel0_text,
