@@ -289,7 +289,7 @@ function App() {
 
                     <div className="seccionGrafica">
                       <div
-                        className="graficaPastel"
+                        className="graficaPastel graficaAnimada"
                         style={{
                           background: `
                             conic-gradient(
