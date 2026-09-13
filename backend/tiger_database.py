@@ -1,3 +1,5 @@
+#backend/tiger_database.py
+
 import os
 import asyncpg
 from dotenv import load_dotenv, find_dotenv
@@ -7,7 +9,7 @@ load_dotenv(find_dotenv())
 DATABASE_URL = os.getenv("TIGER_DATABASE_URL")
 
 class DatabaseManager:
-    def _init_(self):
+    def __init__(self):
         self.pool = None
 
     async def connect(self):
