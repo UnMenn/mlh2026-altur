@@ -37,6 +37,7 @@
   box-sizing: border-box;
 }
 
+
 /* Página */
 
 .pagina {
@@ -379,6 +380,28 @@
   font-size: 14px;
 
   font-weight: 500;
+}
+
+.botonesAnalisis {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.botonSnowflake {
+  background: #262626;
+  color: white;
+}
+
+.botonGemini {
+  background: white;
+  color: #5367ff;
+  border: 1px solid #b9c4ff;
+}
+
+.botonGemini:hover {
+  background: #f5f6ff;
 }
 
 /* Error */

@@ -1,4 +1,13 @@
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
+
+import {
+  useConversationControls,
+  useConversationMode,
+  useConversationStatus,
+} from "@elevenlabs/react";
 
 import { Header } from "../components/layout/Header";
 import { DemoShell } from "../components/layout/DemoShell";
@@ -20,37 +29,114 @@ import "../styles/tokens.css";
 import "../styles/demo.css";
 import "../styles/animations.css";
 
+const AGENT_ID =
+  import.meta.env.VITE_ELEVENLABS_AGENT_ID;
+
 export function DemoPage() {
   useEffect(() => {
-    document.body.classList.add("altur-demo-route");
+    document.body.classList.add(
+      "altur-demo-route",
+    );
 
     return () => {
-      document.body.classList.remove("altur-demo-route");
+      document.body.classList.remove(
+        "altur-demo-route",
+      );
     };
   }, []);
 
   const [channel, setChannel] =
     useState<Channel | null>(null);
 
-  const [agentState, setAgentState] =
-    useState<AgentState>("idle");
+  const [voiceError, setVoiceError] =
+    useState("");
 
-  function cycleOrb() {
-    const sequence: AgentState[] = [
-      "idle",
-      "listening",
-      "thinking",
-      "speaking",
-    ];
+  /*
+   * ElevenLabs controls
+   */
+  const {
+    startSession,
+    endSession,
+  } = useConversationControls();
 
-    const current =
-      sequence.indexOf(agentState);
+  const {
+    status,
+  } = useConversationStatus();
 
-    setAgentState(
-      sequence[
-        (current + 1) % sequence.length
-      ],
-    );
+  const {
+    isSpeaking,
+    isListening,
+  } = useConversationMode();
+
+  /*
+   * Translate ElevenLabs state
+   * into our visual orb states.
+   */
+  let agentState: AgentState = "idle";
+
+  if (status === "connecting") {
+    agentState = "connecting";
+  } else if (
+    status === "connected" &&
+    isSpeaking
+  ) {
+    agentState = "speaking";
+  } else if (
+    status === "connected" &&
+    isListening
+  ) {
+    agentState = "listening";
+  } else if (status === "connected") {
+    agentState = "thinking";
+  }
+
+  async function handleOrbClick() {
+    try {
+      setVoiceError("");
+
+      /*
+       * If already connected,
+       * clicking the orb ends the session.
+       */
+      if (status === "connected") {
+        await endSession();
+        return;
+      }
+
+      if (status === "connecting") {
+        return;
+      }
+
+      if (!AGENT_ID) {
+        throw new Error(
+          "Falta VITE_ELEVENLABS_AGENT_ID",
+        );
+      }
+
+      /*
+       * Browser microphone permission.
+       */
+      await navigator.mediaDevices
+        .getUserMedia({
+          audio: true,
+        });
+
+      /*
+       * Start real ElevenLabs conversation.
+       */
+      await startSession({
+        agentId: AGENT_ID,
+      });
+    } catch (error) {
+      console.error(
+        "Error iniciando Altur:",
+        error,
+      );
+
+      setVoiceError(
+        "No pudimos iniciar la conversación por voz.",
+      );
+    }
   }
 
   return (
@@ -65,48 +151,95 @@ export function DemoPage() {
             </span>
 
             <h1>
-              ¿Cómo quieres
+              ¿Qué necesitas
               <br />
-              continuar tu caso?
+              resolver hoy?
             </h1>
 
             <p>
-              Un mismo asistente, una misma conversación,
-              en cualquier canal.
+              Habla con Altur o elige cómo
+              quieres continuar tu atención.
             </p>
           </section>
 
           <section className="orb-card">
             <VoiceOrb
               state={agentState}
-              onClick={cycleOrb}
+              onClick={handleOrbClick}
             />
 
-            <OrbStatus state={agentState} />
+            <OrbStatus
+              state={agentState}
+            />
 
             <span className="orb-caption">
-              Toca la esfera para probar sus estados
+              {status === "disconnected" &&
+                "Toca la esfera para hablar con Altur"}
+
+              {status === "connecting" &&
+                "Conectando con Altur..."}
+
+              {status === "connected" &&
+                isSpeaking &&
+                "Altur está hablando"}
+
+              {status === "connected" &&
+                isListening &&
+                "Altur te escucha"}
+
+              {status === "connected" &&
+                !isSpeaking &&
+                !isListening &&
+                "Procesando tu solicitud"}
             </span>
+
+            {voiceError && (
+              <p className="voice-error">
+                {voiceError}
+              </p>
+            )}
+
+            {status === "connected" && (
+              <button
+                type="button"
+                className="end-voice-session"
+                onClick={() =>
+                  endSession()
+                }
+              >
+                Terminar conversación
+              </button>
+            )}
           </section>
         </main>
 
         <section className="channels-section">
-          <ChannelGrid onSelect={setChannel} />
+          <ChannelGrid
+            onSelect={setChannel}
+          />
         </section>
 
         <WhatsAppModal
-          open={channel === "whatsapp"}
-          onClose={() => setChannel(null)}
+          open={
+            channel === "whatsapp"
+          }
+          onClose={() =>
+            setChannel(null)
+          }
         />
 
         <SmsModal
           open={channel === "sms"}
-          onClose={() => setChannel(null)}
+          onClose={() =>
+            setChannel(null)
+          }
         />
 
         <CallModal
           open={channel === "call"}
-          onClose={() => setChannel(null)}
+          onClose={() =>
+            setChannel(null)
+          }
         />
       </DemoShell>
     </div>

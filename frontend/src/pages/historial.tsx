@@ -1,4 +1,14 @@
+import {
+  useEffect,
+  useState,
+} from 'react'
+
 import '../styles/historial.css'
+
+import {
+  obtenerHistorial,
+  type HistorialAudio,
+} from '../services/history'
 
 type HistorialProps = {
   onVolver: () => void
@@ -8,39 +18,69 @@ function Historial({
   onVolver,
 }: HistorialProps) {
 
-  const historialAudios = [
-    {
-      time:
-        '2026-09-13T03:24:34.488876+00:00',
+  const [
+    historialAudios,
+    setHistorialAudios,
+  ] = useState<HistorialAudio[]>([])
 
-      call_id:
-        'call_76856257e3ef.wav',
+  const [
+    cargando,
+    setCargando,
+  ] = useState(true)
 
-      synthetic_probability:
-        0.996204896635181,
+  const [
+    error,
+    setError,
+  ] = useState<string | null>(null)
 
-      channel_status:
-        'suspicious',
+  useEffect(() => {
 
-      segments_count: 10,
-    },
+    const cargarHistorial = async () => {
 
-    {
-      time:
-        '2026-09-13T02:58:27.281329+00:00',
+      try {
 
-      call_id:
-        'call_76856257e3ef.wav',
+        setCargando(true)
+        setError(null)
 
-      synthetic_probability:
-        0.996204896635181,
+        const datos =
+          await obtenerHistorial()
 
-      channel_status:
-        'suspicious',
+        setHistorialAudios(datos)
 
-      segments_count: 10,
-    },
-  ]
+      } catch (error) {
+
+        console.error(
+          'Error cargando historial:',
+          error,
+        )
+
+        setError(
+          'No se pudo cargar el historial.',
+        )
+
+      } finally {
+
+        setCargando(false)
+
+      }
+
+    }
+
+    cargarHistorial()
+
+  }, [])
+
+  const esSospechoso = (
+    estado: string
+  ) => {
+
+    return (
+      estado === '1' ||
+      estado.toLowerCase() ===
+        'suspicious'
+    )
+
+  }
 
   const formatearProbabilidad = (
     probabilidad: number
@@ -57,12 +97,13 @@ function Historial({
   ) => {
 
     if (
-      estado === 'suspicious'
+      esSospechoso(estado)
     ) {
       return 'Sospechoso'
     }
 
     return 'Sin sospecha'
+
   }
 
   const formatearFecha = (
@@ -127,8 +168,7 @@ function Historial({
         <div className="historialIntro">
 
           <p>
-            Consulta los resultados de
-            tus análisis anteriores
+            Consulta los resultados de tus análisis anteriores
           </p>
 
           <h1>
@@ -137,7 +177,38 @@ function Historial({
 
         </div>
 
-        {historialAudios.length > 0 ? (
+        {cargando ? (
+
+          <div className="historialVacio">
+
+            <h3>
+              Cargando historial...
+            </h3>
+
+          </div>
+
+        ) : error ? (
+
+          <div className="historialVacio">
+
+            <h3>
+              No pudimos cargar el historial
+            </h3>
+
+            <p>
+              {error}
+            </p>
+
+            <button
+              className="historialBotonVolver"
+              onClick={onVolver}
+            >
+              Volver
+            </button>
+
+          </div>
+
+        ) : historialAudios.length > 0 ? (
 
           <div className="historialLista">
 
@@ -146,7 +217,7 @@ function Historial({
 
                 <div
                   className="historialTarjeta"
-                  key={index}
+                  key={`${audio.call_id}-${audio.time}`}
                 >
 
                   <div className="historialTarjetaSuperior">
@@ -165,8 +236,9 @@ function Historial({
 
                     <span
                       className={
-                        audio.channel_status ===
-                        'suspicious'
+                        esSospechoso(
+                          audio.channel_status
+                        )
 
                           ? 'historialEstado historialEstadoSospechoso'
 
@@ -257,8 +329,7 @@ function Historial({
             </h3>
 
             <p>
-              Cuando analices un audio
-              aparecerá aquí.
+              Cuando analices un audio aparecerá aquí.
             </p>
 
             <button
@@ -279,4 +350,4 @@ function Historial({
   )
 }
 
-export default Historial 
+export default Historial

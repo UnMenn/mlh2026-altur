@@ -1,146 +1,280 @@
-import { useState, type ChangeEvent } from 'react'
-import { Link } from 'react-router-dom'
-import Historial from './pages/historial'
-import './App.css'
+import {
+  useState,
+  type ChangeEvent,
+} from "react";
+
+import { Link } from "react-router-dom";
+
+import Historial from "./pages/historial";
+
+import {
+  analyzeAudio,
+  type AudioAnalysisResponse,
+} from "./services/audioAnalysis";
+
+import "./App.css";
 
 function App() {
-  const [audios, setAudios] = useState<File[]>([])
-  const [mostrarResultado, setMostrarResultado] = useState(false)
-  const [mostrarVerificacion, setMostrarVerificacion] = useState(false)
-  const [mostrarHistorial, setMostrarHistorial] = useState(false)
+  const [audios, setAudios] =
+    useState<File[]>([]);
 
-  const [audioSeleccionado, setAudioSeleccionado] =
-    useState<number | null>(null)
+  const [resultados, setResultados] =
+    useState<AudioAnalysisResponse[]>([]);
 
-  const [analizando, setAnalizando] = useState(false)
-  const [error, setError] = useState('')
+  const [
+    mostrarResultado,
+    setMostrarResultado,
+  ] = useState(false);
 
-  const datosPrueba = [
-    {
-      esHumano: true,
-      accuracy: 99.62,
-      acustica: 35,
-      comportamiento: 25,
-      semantica: 20,
-      contexto: 20,
-    },
-    {
-      esHumano: false,
-      accuracy: 99.62,
-      acustica: 15,
-      comportamiento: 30,
-      semantica: 25,
-      contexto: 30,
-    },
-    {
-      esHumano: true,
-      accuracy: 99.62,
-      acustica: 40,
-      comportamiento: 20,
-      semantica: 25,
-      contexto: 15,
-    },
-  ]
+  const [
+    mostrarVerificacion,
+    setMostrarVerificacion,
+  ] = useState(false);
+
+  const [
+    mostrarHistorial,
+    setMostrarHistorial,
+  ] = useState(false);
+
+  const [
+    audioSeleccionado,
+    setAudioSeleccionado,
+  ] = useState<number | null>(null);
+
+  const [
+    analizando,
+    setAnalizando,
+  ] = useState(false);
+
+  const [
+    error,
+    setError,
+  ] = useState("");
 
   const seleccionarAudios = (
-    e: ChangeEvent<HTMLInputElement>
+    e: ChangeEvent<HTMLInputElement>,
   ) => {
-    const archivosSeleccionados = Array.from(
-      e.target.files || []
-    )
+    const archivosSeleccionados =
+      Array.from(
+        e.target.files || [],
+      );
 
     const archivosInvalidos =
       archivosSeleccionados.filter(
         (archivo) =>
-          !archivo.type.startsWith('audio/')
-      )
+          !archivo.name
+            .toLowerCase()
+            .endsWith(".wav"),
+      );
 
-    if (archivosInvalidos.length > 0) {
+    if (
+      archivosInvalidos.length > 0
+    ) {
       setError(
-        'Solo puedes subir archivos de audio.'
-      )
+        "Solo puedes subir archivos WAV.",
+      );
 
-      setAudios([])
-      return
+      setAudios([]);
+      setResultados([]);
+
+      return;
     }
 
-    setError('')
-    setAudios(archivosSeleccionados)
-  }
+    setError("");
+    setResultados([]);
 
-  const analizarAudios = () => {
-    if (audios.length === 0) {
-      setError(
-        'Selecciona al menos un archivo de audio.'
-      )
+    setAudios(
+      archivosSeleccionados,
+    );
+  };
 
-      return
-    }
+  const analizarAudios =
+    async () => {
+      if (
+        audios.length === 0
+      ) {
+        setError(
+          "Selecciona al menos un archivo de audio.",
+        );
 
-    setError('')
-    setAnalizando(true)
+        return;
+      }
 
-    setTimeout(() => {
-      setAnalizando(false)
-      setMostrarVerificacion(true)
-    }, 2000)
-  }
+      try {
+        setError("");
+        setAnalizando(true);
+        setResultados([]);
 
-  const verResultado = (index: number) => {
-    setAudioSeleccionado(index)
-    setMostrarVerificacion(false)
-    setMostrarResultado(true)
-  }
+        const respuestas =
+          await Promise.all(
+            audios.map(
+              (audio) =>
+                analyzeAudio(audio),
+            ),
+          );
+
+        console.log(
+          "Resultados Gemini:",
+          respuestas,
+        );
+
+        setResultados(
+          respuestas,
+        );
+
+        setMostrarVerificacion(
+          true,
+        );
+      } catch (error) {
+        console.error(
+          "Error analizando audios:",
+          error,
+        );
+
+        setError(
+          error instanceof Error
+            ? error.message
+            : "No se pudieron analizar los audios.",
+        );
+      } finally {
+        setAnalizando(false);
+      }
+    };
+
+  const verResultado = (
+    index: number,
+  ) => {
+    setAudioSeleccionado(
+      index,
+    );
+
+    setMostrarVerificacion(
+      false,
+    );
+
+    setMostrarResultado(
+      true,
+    );
+  };
 
   const volverAudios = () => {
-    setMostrarResultado(false)
-    setMostrarVerificacion(true)
-    setAudioSeleccionado(null)
-  }
+    setMostrarResultado(
+      false,
+    );
+
+    setMostrarVerificacion(
+      true,
+    );
+
+    setAudioSeleccionado(
+      null,
+    );
+  };
 
   const nuevoAnalisis = () => {
-    setMostrarResultado(false)
-    setMostrarVerificacion(false)
-    setMostrarHistorial(false)
+    setMostrarResultado(
+      false,
+    );
 
-    setAudioSeleccionado(null)
+    setMostrarVerificacion(
+      false,
+    );
 
-    setAudios([])
-    setError('')
-    setAnalizando(false)
-  }
+    setMostrarHistorial(
+      false,
+    );
+
+    setAudioSeleccionado(
+      null,
+    );
+
+    setAudios([]);
+    setResultados([]);
+
+    setError("");
+    setAnalizando(false);
+  };
+
+  const formatPrediction = (
+    prediction: string,
+  ) => {
+    if (
+      prediction
+        .toLowerCase() ===
+      "synthetic"
+    ) {
+      return "Sintético";
+    }
+
+    if (
+      prediction
+        .toLowerCase() ===
+      "real"
+    ) {
+      return "Real";
+    }
+
+    return prediction;
+  };
+
+  const formatChannelStatus = (
+    status: string,
+  ) => {
+    if (
+      status
+        .toLowerCase() ===
+      "suspicious"
+    ) {
+      return "Sospechoso";
+    }
+
+    if (
+      status
+        .toLowerCase() ===
+      "safe"
+    ) {
+      return "Seguro";
+    }
+
+    return status;
+  };
 
   if (mostrarHistorial) {
     return (
       <Historial
         onVolver={() =>
-          setMostrarHistorial(false)
+          setMostrarHistorial(
+            false,
+          )
         }
       />
-    )
+    );
   }
 
   return (
     <main className="pagina">
-
-      <header className="barraSuperior">
-
+      <header
+        className="barraSuperior"
+      >
         <h2>
           Verificación de Audio
-          <span className="brand-dot">
+
+          <span
+            className="brand-dot"
+          >
             .
           </span>
         </h2>
-
       </header>
 
       {!mostrarResultado &&
       !mostrarVerificacion ? (
-
-        <section className="contenidoPrincipal">
-
-          <div className="textoPrincipal">
-
+        <section
+          className="contenidoPrincipal"
+        >
+          <div
+            className="textoPrincipal"
+          >
             <span>
               ANÁLISIS DE LLAMADAS
             </span>
@@ -152,8 +286,9 @@ function App() {
             </h1>
 
             <p>
-              Selecciona los archivos de audio
-              que quieras analizar.
+              Selecciona los archivos
+              de audio que quieras
+              analizar.
             </p>
 
             <Link
@@ -162,450 +297,474 @@ function App() {
             >
               Probar en vivo
             </Link>
-
           </div>
 
-          <div className="tarjetaAudio">
-
-            <label className="zonaSubirAudio">
-
+          <div
+            className="tarjetaAudio"
+          >
+            <label
+              className="zonaSubirAudio"
+            >
               <input
                 type="file"
-                accept="audio/*"
+                accept=".wav,audio/wav"
                 multiple
-                onChange={seleccionarAudios}
+                onChange={
+                  seleccionarAudios
+                }
               />
 
-              <div className="iconoAudio">
+              <div
+                className="iconoAudio"
+              >
                 ♪
               </div>
 
               <h3>
-
                 {audios.length > 0
                   ? `${audios.length} ${
-                      audios.length === 1
-                        ? 'archivo seleccionado'
-                        : 'archivos seleccionados'
+                      audios.length ===
+                      1
+                        ? "archivo seleccionado"
+                        : "archivos seleccionados"
                     }`
-                  : 'Sube tus audios'}
-
+                  : "Sube tus audios"}
               </h3>
 
               <p>
-
                 {audios.length > 0
-                  ? 'Archivos listos para analizar'
-                  : 'Arrastra los archivos aquí o selecciónalos desde tu computadora'}
-
+                  ? "Archivos listos para analizar"
+                  : "Arrastra los archivos aquí o selecciónalos desde tu computadora"}
               </p>
 
-              {audios.length > 0 && (
-
-                <div className="listaArchivos">
-
+              {audios.length >
+                0 && (
+                <div
+                  className="listaArchivos"
+                >
                   {audios.map(
-                    (audio, index) => (
-
-                      <p key={index}>
-                        {audio.name}
+                    (
+                      audio,
+                      index,
+                    ) => (
+                      <p
+                        key={
+                          index
+                        }
+                      >
+                        {
+                          audio.name
+                        }
                       </p>
-
-                    )
+                    ),
                   )}
-
                 </div>
-
               )}
 
-              <span className="botonArchivo">
-
+              <span
+                className="botonArchivo"
+              >
                 {audios.length > 0
-                  ? 'Cambiar archivos'
-                  : 'Elegir archivos'}
-
+                  ? "Cambiar archivos"
+                  : "Elegir archivos"}
               </span>
-
             </label>
 
             {error && (
-
-              <p className="mensajeError">
+              <p
+                className="mensajeError"
+              >
                 {error}
               </p>
-
             )}
 
-            {analizando && (
-
-              <div className="estadoCarga">
-
-                <div className="circuloCarga">
-                </div>
+            {analizando ? (
+              <div
+                className="estadoCarga"
+              >
+                <div
+                  className="circuloCarga"
+                />
 
                 <p>
-                  Analizando llamadas...
+                  Analizando con
+                  Gemini...
                 </p>
-
               </div>
-
+            ) : (
+              <button
+                className="botonAnalizar botonGemini"
+                disabled={
+                  audios.length ===
+                  0
+                }
+                onClick={
+                  analizarAudios
+                }
+              >
+                Analizar con Gemini ✦
+              </button>
             )}
-
-            <button
-              className="botonAnalizar"
-              disabled={
-                audios.length === 0 ||
-                analizando
-              }
-              onClick={analizarAudios}
-            >
-
-              {analizando
-                ? 'Analizando...'
-                : 'Analizar audios →'}
-
-            </button>
-
           </div>
-
         </section>
-
       ) : mostrarVerificacion ? (
-
-        <section className="resultados">
-
-          <div className="barraEtiquetas">
-
-            <span className="etiquetaResultado">
+        <section
+          className="resultados"
+        >
+          <div
+            className="barraEtiquetas"
+          >
+            <span
+              className="etiquetaResultado"
+            >
               VERIFICACIÓN DE AUDIO
             </span>
 
             <button
               className="botonHistorial"
               onClick={() =>
-                setMostrarHistorial(true)
+                setMostrarHistorial(
+                  true,
+                )
               }
             >
               HISTORIAL
             </button>
-
           </div>
 
-          <div className="encabezadoResultado">
-
+          <div
+            className="encabezadoResultado"
+          >
             <div>
-
-              <p className="textoResultado">
-                Selecciona un audio para
-                ver su resultado
+              <p
+                className="textoResultado"
+              >
+                Selecciona un audio
+                para ver su resultado
               </p>
 
-              <h1 className="tituloResultado">
+              <h1
+                className="tituloResultado"
+              >
                 Verificación de audio
               </h1>
-
             </div>
 
             <button
               className="botonNuevoAnalisis"
-              onClick={nuevoAnalisis}
+              onClick={
+                nuevoAnalisis
+              }
             >
               Subir nuevos audios
             </button>
-
           </div>
 
-          <div className="listaVerificacion">
-
+          <div
+            className="listaVerificacion"
+          >
             {audios.map(
-              (audio, index) => (
+              (
+                audio,
+                index,
+              ) => {
+                const resultado =
+                  resultados[
+                    index
+                  ];
 
-                <button
-                  className="audioVerificacion"
-                  key={index}
-                  onClick={() =>
-                    verResultado(index)
-                  }
-                >
+                return (
+                  <button
+                    className="audioVerificacion"
+                    key={index}
+                    onClick={() =>
+                      verResultado(
+                        index,
+                      )
+                    }
+                  >
+                    <div
+                      className="numeroAudio"
+                    >
+                      {index +
+                        1}
+                    </div>
 
-                  <div className="numeroAudio">
-                    {index + 1}
-                  </div>
+                    <div
+                      className="infoAudio"
+                    >
+                      <span>
+                        Audio{" "}
+                        {index +
+                          1}
+                      </span>
 
-                  <div className="infoAudio">
+                      <p>
+                        {
+                          audio.name
+                        }
+                      </p>
 
-                    <span>
-                      Audio {index + 1}
-                    </span>
+                      {resultado && (
+                        <small>
+                          {formatChannelStatus(
+                            resultado.channel_status,
+                          )}
+                        </small>
+                      )}
+                    </div>
 
-                    <p>
-                      {audio.name}
-                    </p>
-
-                  </div>
-
-                  <div className="flechaAudio">
-                    →
-                  </div>
-
-                </button>
-
-              )
+                    <div
+                      className="flechaAudio"
+                    >
+                      →
+                    </div>
+                  </button>
+                );
+              },
             )}
-
           </div>
-
         </section>
-
       ) : (
-
-        <section className="resultados">
-
-          <div className="barraEtiquetas">
-
-            <span className="etiquetaResultado">
+        <section
+          className="resultados"
+        >
+          <div
+            className="barraEtiquetas"
+          >
+            <span
+              className="etiquetaResultado"
+            >
               RESULTADO DEL ANÁLISIS
             </span>
 
             <button
               className="botonHistorial"
               onClick={() =>
-                setMostrarHistorial(true)
+                setMostrarHistorial(
+                  true,
+                )
               }
             >
               HISTORIAL
             </button>
-
           </div>
 
-          <div className="encabezadoResultado">
+          <div
+            className="encabezadoResultado"
+          >
+            <div>
+              <p
+                className="textoResultado"
+              >
+                Resultado del audio
+                seleccionado
+              </p>
 
-            {audioSeleccionado !== null && (() => {
-
-              const resultado =
-                datosPrueba[
-                  audioSeleccionado %
-                  datosPrueba.length
-                ]
-
-              return (
-
-                <div className="tituloConAccuracy">
-
-                  <div>
-
-                    <p className="textoResultado">
-                      Resultado del audio seleccionado
-                    </p>
-
-                    <h1 className="tituloResultado">
-                      Resultados
-                    </h1>
-
-                  </div>
-
-                  <div className="accuracyResultado">
-
-                    <span>
-                      ACCURACY
-                    </span>
-
-                    <strong>
-                      {resultado.accuracy}%
-                    </strong>
-
-                  </div>
-
-                </div>
-
-              )
-
-            })()}
+              <h1
+                className="tituloResultado"
+              >
+                Resultados
+              </h1>
+            </div>
 
             <button
               className="botonNuevoAnalisis"
-              onClick={volverAudios}
+              onClick={
+                volverAudios
+              }
             >
               ← Volver a los audios
             </button>
-
           </div>
 
-          <div className="listaResultados">
-
-            {audioSeleccionado !== null &&
+          <div
+            className="listaResultados"
+          >
+            {audioSeleccionado !==
+              null &&
               (() => {
-
-                const audio =
-                  audios[
-                    audioSeleccionado
-                  ]
-
                 const resultado =
-                  datosPrueba[
-                    audioSeleccionado %
-                    datosPrueba.length
-                  ]
+                  resultados[
+                    audioSeleccionado
+                  ];
+
+                if (!resultado) {
+                  return (
+                    <div
+                      className="tarjetaAnalisis"
+                    >
+                      <p>
+                        No hay resultado
+                        disponible para
+                        este audio.
+                      </p>
+                    </div>
+                  );
+                }
+
+                const porcentajeSintetico =
+                  Math.max(
+                    0,
+                    Math.min(
+                      100,
+                      resultado
+                        .synthetic_probability *
+                        100,
+                    ),
+                  );
+
+                const esSintetico =
+                  resultado
+                    .prediction
+                    .toLowerCase() ===
+                  "synthetic";
+
+                const esReal =
+                  resultado
+                    .prediction
+                    .toLowerCase() ===
+                  "real";
 
                 return (
-
-                  <div className="tarjetaAnalisis">
-
-                    <div className="encabezadoAnalisis">
-
+                  <div
+                    className="tarjetaAnalisis"
+                  >
+                    <div
+                      className="encabezadoAnalisis"
+                    >
                       <span>
-                        ANÁLISIS DE DETECCIÓN
+                        ANÁLISIS DE
+                        DETECCIÓN
                       </span>
 
                       <h2>
-                        {audio.name}
+                        {
+                          resultado.filename
+                        }
                       </h2>
-
                     </div>
 
-                    <h1 className="resultadoAudio">
-
-                      {resultado.esHumano
-                        ? 'ES HUMANO'
-                        : 'NO ES HUMANO'}
-
+                    <h1
+                      className="resultadoAudio"
+                    >
+                      {esSintetico
+                        ? "AUDIO SINTÉTICO"
+                        : esReal
+                          ? "AUDIO REAL"
+                          : resultado.prediction.toUpperCase()}
                     </h1>
 
-                    <div className="seccionGrafica">
-
+                    <div
+                      className="seccionGrafica"
+                    >
                       <div
                         className="graficaPastel graficaAnimada"
-
                         style={{
                           background: `conic-gradient(
                             #8bd0e9 0%
-                            ${resultado.acustica}%,
-
-                            #cb78ed
-                            ${resultado.acustica}%
-                            ${
-                              resultado.acustica +
-                              resultado.comportamiento
-                            }%,
-
-                            #ee975a
-                            ${
-                              resultado.acustica +
-                              resultado.comportamiento
-                            }%
-                            ${
-                              resultado.acustica +
-                              resultado.comportamiento +
-                              resultado.semantica
-                            }%,
-
-                            #80ee7a
-                            ${
-                              resultado.acustica +
-                              resultado.comportamiento +
-                              resultado.semantica
-                            }%
+                            ${porcentajeSintetico}%,
+                            #eeeeee
+                            ${porcentajeSintetico}%
                             100%
                           )`,
                         }}
                       />
 
-                      <div className="datosGrafica">
-
-                        <div className="datoGrafica">
-
-                          <span className="colorDato colorAcustica">
-                          </span>
+                      <div
+                        className="datosGrafica"
+                      >
+                        <div
+                          className="datoGrafica"
+                        >
+                          <span
+                            className="colorDato colorAcustica"
+                          />
 
                           <div>
-
                             <p>
-                              Detección acústica
+                              Archivo
                             </p>
 
                             <strong>
-                              {resultado.acustica}%
+                              {
+                                resultado.filename
+                              }
                             </strong>
-
                           </div>
-
                         </div>
 
-                        <div className="datoGrafica">
-
-                          <span className="colorDato colorComportamiento">
-                          </span>
+                        <div
+                          className="datoGrafica"
+                        >
+                          <span
+                            className="colorDato colorComportamiento"
+                          />
 
                           <div>
-
                             <p>
-                              Comportamiento
+                              Predicción
                             </p>
 
                             <strong>
-                              {resultado.comportamiento}%
+                              {formatPrediction(
+                                resultado.prediction,
+                              )}
                             </strong>
-
                           </div>
-
                         </div>
 
-                        <div className="datoGrafica">
-
-                          <span className="colorDato colorSemantica">
-                          </span>
+                        <div
+                          className="datoGrafica"
+                        >
+                          <span
+                            className="colorDato colorSemantica"
+                          />
 
                           <div>
-
                             <p>
-                              Semántica
+                              Probabilidad
+                              sintética
                             </p>
 
                             <strong>
-                              {resultado.semantica}%
+                              {porcentajeSintetico.toFixed(
+                                2,
+                              )}
+                              %
                             </strong>
-
                           </div>
-
                         </div>
 
-                        <div className="datoGrafica">
-
-                          <span className="colorDato colorContexto">
-                          </span>
+                        <div
+                          className="datoGrafica"
+                        >
+                          <span
+                            className="colorDato colorContexto"
+                          />
 
                           <div>
-
                             <p>
-                              Contexto
+                              Estado del canal
                             </p>
 
                             <strong>
-                              {resultado.contexto}%
+                              {formatChannelStatus(
+                                resultado.channel_status,
+                              )}
                             </strong>
-
                           </div>
-
                         </div>
-
                       </div>
-
                     </div>
-
                   </div>
-
-                )
-
+                );
               })()}
-
           </div>
-
         </section>
-
       )}
-
     </main>
-  )
+  );
 }
 
-export default App
+export default App;
