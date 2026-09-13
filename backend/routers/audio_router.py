@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, File, HTTPException, UploadFile
+from fastapi import FastAPI, APIRouter, File, HTTPException, UploadFile, BackgroundTasks
 from backend.utils.audio_processor import extract_segments_from_turns, extract_features_from_numpy
 from pathlib import Path
 import joblib
@@ -13,6 +13,7 @@ from backend.audio.decoder import decode_base64_wav
 from backend.audio.validation import validate_wav
 from backend.audio.channels import extract_channels
 from backend.audio.turns import detect_turns
+from backend.tiger_database import db
 
 from pydantic import BaseModel
 
@@ -27,7 +28,7 @@ class AudioRequest(BaseModel):
     
 
 @router.post("/detect")
-async def process_audio(request: AudioRequest):
+async def process_audio(background_tasks: BackgroundTasks, request: AudioRequest):
     EXPECTED_SAMPLE_RATE = 8000
     EXPECTED_CHANNELS = 2
 
@@ -96,6 +97,14 @@ async def process_audio(request: AudioRequest):
         prediction = int(model.predict(X_input)[0])
         synthetic_probability = float(
             model.predict_proba(X_input)[0][1]
+        )
+
+        background_tasks.add_task(
+            db.log_call_telemetry,
+            filename=request.call_id,
+            probability=synthetic_probability,
+            status=str(prediction),
+            segments_count=len(channel_0_segments)
         )
 
         return {
