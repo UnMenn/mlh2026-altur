@@ -1,14 +1,15 @@
-import { useState } from 'react'
+import { useState, type ChangeEvent } from 'react'
 import { Link } from 'react-router-dom'
 import './App.css'
 
 function App() {
   const [audios, setAudios] = useState<File[]>([])
   const [mostrarResultado, setMostrarResultado] = useState(false)
+  const [mostrarVerificacion, setMostrarVerificacion] = useState(false)
+  const [audioSeleccionado, setAudioSeleccionado] = useState<number | null>(null)
   const [analizando, setAnalizando] = useState(false)
   const [error, setError] = useState('')
 
-  // Datos temporales para probar la interfaz
   const datosPrueba = [
     {
       esHumano: true,
@@ -34,19 +35,11 @@ function App() {
   ]
 
   const seleccionarAudios = (
-    e: React.ChangeEvent<HTMLInputElement>
+    e: ChangeEvent<HTMLInputElement>
   ) => {
     const archivosSeleccionados = Array.from(
       e.target.files || []
     )
-
-    if (archivosSeleccionados.length > 3) {
-      setError(
-        'Puedes analizar un máximo de 3 audios a la vez.'
-      )
-      setAudios([])
-      return
-    }
 
     const archivosInvalidos =
       archivosSeleccionados.filter(
@@ -55,9 +48,7 @@ function App() {
       )
 
     if (archivosInvalidos.length > 0) {
-      setError(
-        'Solo puedes subir archivos de audio.'
-      )
+      setError('Solo puedes subir archivos de audio.')
       setAudios([])
       return
     }
@@ -77,15 +68,28 @@ function App() {
     setError('')
     setAnalizando(true)
 
-    // Simula el tiempo de análisis
     setTimeout(() => {
       setAnalizando(false)
-      setMostrarResultado(true)
+      setMostrarVerificacion(true)
     }, 2000)
+  }
+
+  const verResultado = (index: number) => {
+    setAudioSeleccionado(index)
+    setMostrarVerificacion(false)
+    setMostrarResultado(true)
+  }
+
+  const volverAudios = () => {
+    setMostrarResultado(false)
+    setMostrarVerificacion(true)
+    setAudioSeleccionado(null)
   }
 
   const nuevoAnalisis = () => {
     setMostrarResultado(false)
+    setMostrarVerificacion(false)
+    setAudioSeleccionado(null)
     setAudios([])
     setError('')
     setAnalizando(false)
@@ -93,6 +97,7 @@ function App() {
 
   return (
     <main className="pagina">
+
       <header className="barraSuperior">
         <h2>
           Verificación de Audio
@@ -100,10 +105,16 @@ function App() {
         </h2>
       </header>
 
-      {!mostrarResultado ? (
+
+      {!mostrarResultado && !mostrarVerificacion ? (
+
         <section className="contenidoPrincipal">
+
           <div className="textoPrincipal">
-            <span>ANÁLISIS DE LLAMADAS</span>
+
+            <span>
+              ANÁLISIS DE LLAMADAS
+            </span>
 
             <h1>
               Sube tus llamadas
@@ -112,8 +123,8 @@ function App() {
             </h1>
 
             <p>
-              Selecciona hasta 3 archivos de audio
-              para comenzar.
+              Selecciona los archivos de audio
+              que quieras analizar.
             </p>
 
             <Link
@@ -122,10 +133,14 @@ function App() {
             >
               Probar en vivo
             </Link>
+
           </div>
 
+
           <div className="tarjetaAudio">
+
             <label className="zonaSubirAudio">
+
               <input
                 type="file"
                 accept="audio/*"
@@ -150,43 +165,63 @@ function App() {
               <p>
                 {audios.length > 0
                   ? 'Archivos listos para analizar'
-                  : 'Arrastra hasta 3 archivos aquí o selecciónalos desde tu computadora'}
+                  : 'Arrastra los archivos aquí o selecciónalos desde tu computadora'}
               </p>
 
+
               {audios.length > 0 && (
+
                 <div className="listaArchivos">
+
                   {audios.map(
                     (audio, index) => (
+
                       <p key={index}>
                         {audio.name}
                       </p>
+
                     )
                   )}
+
                 </div>
+
               )}
 
+
               <span className="botonArchivo">
+
                 {audios.length > 0
                   ? 'Cambiar archivos'
                   : 'Elegir archivos'}
+
               </span>
+
             </label>
 
+
             {error && (
+
               <p className="mensajeError">
                 {error}
               </p>
+
             )}
 
+
             {analizando && (
+
               <div className="estadoCarga">
+
                 <div className="circuloCarga"></div>
 
                 <p>
                   Analizando llamadas...
                 </p>
+
               </div>
+
             )}
+
 
             <button
               className="botonAnalizar"
@@ -196,175 +231,301 @@ function App() {
               }
               onClick={analizarAudios}
             >
+
               {analizando
                 ? 'Analizando...'
                 : 'Analizar audios →'}
+
             </button>
+
           </div>
+
         </section>
-      ) : (
+
+
+      ) : mostrarVerificacion ? (
+
         <section className="resultados">
+
           <span className="etiquetaResultado">
-            RESULTADOS DEL ANÁLISIS
+            VERIFICACIÓN DE AUDIO
           </span>
 
+
           <div className="encabezadoResultado">
+
             <div>
+
               <p className="textoResultado">
-                Se analizaron {audios.length}{' '}
-                audio
-                {audios.length > 1
-                  ? 's'
-                  : ''}
+                Selecciona un audio para ver su resultado
               </p>
 
               <h1 className="tituloResultado">
-                Resultados
+                Verificación de audio
               </h1>
+
             </div>
+
 
             <button
               className="botonNuevoAnalisis"
               onClick={nuevoAnalisis}
             >
-              Analizar otras llamadas
+              Subir nuevos audios
             </button>
+
           </div>
+
+
+          <div className="listaVerificacion">
+
+            {audios.map(
+              (audio, index) => (
+
+                <button
+                  className="audioVerificacion"
+                  key={index}
+                  onClick={() =>
+                    verResultado(index)
+                  }
+                >
+
+                  <div className="numeroAudio">
+                    {index + 1}
+                  </div>
+
+                  <div className="infoAudio">
+
+                    <span>
+                      Audio {index + 1}
+                    </span>
+
+                    <p>
+                      {audio.name}
+                    </p>
+
+                  </div>
+
+                  <div className="flechaAudio">
+                    →
+                  </div>
+
+                </button>
+
+              )
+            )}
+
+          </div>
+
+        </section>
+
+
+      ) : (
+
+        <section className="resultados">
+
+          <span className="etiquetaResultado">
+            RESULTADO DEL ANÁLISIS
+          </span>
+
+
+          <div className="encabezadoResultado">
+
+            <div>
+
+              <p className="textoResultado">
+                Resultado del audio seleccionado
+              </p>
+
+              <h1 className="tituloResultado">
+                Resultados
+              </h1>
+
+            </div>
+
+
+            <button
+              className="botonNuevoAnalisis"
+              onClick={volverAudios}
+            >
+              ← Volver a los audios
+            </button>
+
+          </div>
+
 
           <div className="listaResultados">
-            {audios.map(
-              (audio, index) => {
-                const resultado =
-                  datosPrueba[index]
 
-                return (
-                  <div
-                    className="tarjetaAnalisis"
-                    key={index}
-                  >
-                    <div className="encabezadoAnalisis">
-                      <span>
-                        ANÁLISIS DE DETECCIÓN
-                      </span>
+            {audioSeleccionado !== null && (() => {
 
-                      <h2>
-                        {audio.name}
-                      </h2>
-                    </div>
+              const audio =
+                audios[audioSeleccionado]
 
-                    <h1 className="resultadoAudio">
-                      {resultado.esHumano
-                        ? 'ES HUMANO'
-                        : 'NO ES HUMANO'}
-                    </h1>
+              const resultado =
+                datosPrueba[
+                  audioSeleccionado %
+                  datosPrueba.length
+                ]
 
-                    <div className="seccionGrafica">
-                      <div
-                        className="graficaPastel graficaAnimada"
-                        style={{
-                          background: `conic-gradient(
-                            #292929 0% ${resultado.acustica}%,
+              return (
 
-                            #666666 ${resultado.acustica}% ${
-                              resultado.acustica +
-                              resultado.comportamiento
-                            }%,
+                <div className="tarjetaAnalisis">
 
-                            #999999 ${
-                              resultado.acustica +
-                              resultado.comportamiento
-                            }% ${
-                              resultado.acustica +
-                              resultado.comportamiento +
-                              resultado.semantica
-                            }%,
+                  <div className="encabezadoAnalisis">
 
-                            #cccccc ${
-                              resultado.acustica +
-                              resultado.comportamiento +
-                              resultado.semantica
-                            }% 100%
-                          )`,
-                        }}
-                      />
+                    <span>
+                      ANÁLISIS DE DETECCIÓN
+                    </span>
 
-                      <div className="datosGrafica">
-                        <div className="datoGrafica">
-                          <span className="colorDato colorAcustica"></span>
+                    <h2>
+                      {audio.name}
+                    </h2>
 
-                          <div>
-                            <p>
-                              Detección acústica
-                            </p>
-
-                            <strong>
-                              {
-                                resultado.acustica
-                              }
-                              %
-                            </strong>
-                          </div>
-                        </div>
-
-                        <div className="datoGrafica">
-                          <span className="colorDato colorComportamiento"></span>
-
-                          <div>
-                            <p>
-                              Comportamiento
-                            </p>
-
-                            <strong>
-                              {
-                                resultado.comportamiento
-                              }
-                              %
-                            </strong>
-                          </div>
-                        </div>
-
-                        <div className="datoGrafica">
-                          <span className="colorDato colorSemantica"></span>
-
-                          <div>
-                            <p>
-                              Semántica
-                            </p>
-
-                            <strong>
-                              {
-                                resultado.semantica
-                              }
-                              %
-                            </strong>
-                          </div>
-                        </div>
-
-                        <div className="datoGrafica">
-                          <span className="colorDato colorContexto"></span>
-
-                          <div>
-                            <p>
-                              Contexto
-                            </p>
-
-                            <strong>
-                              {
-                                resultado.contexto
-                              }
-                              %
-                            </strong>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
                   </div>
-                )
-              }
-            )}
+
+
+                  <h1 className="resultadoAudio">
+
+                    {resultado.esHumano
+                      ? 'ES HUMANO'
+                      : 'NO ES HUMANO'}
+
+                  </h1>
+
+
+                  <div className="seccionGrafica">
+
+                    <div
+                      className="graficaPastel graficaAnimada"
+
+                      style={{
+                        background: `conic-gradient(
+                          #8bd0e9
+                          ${resultado.acustica}%,
+
+                          #cb78ed
+                          ${resultado.acustica}%
+                          ${
+                            resultado.acustica +
+                            resultado.comportamiento
+                          }%,
+
+                          #ee975a
+                          ${
+                            resultado.acustica +
+                            resultado.comportamiento
+                          }%
+                          ${
+                            resultado.acustica +
+                            resultado.comportamiento +
+                            resultado.semantica
+                          }%,
+
+                          #80ee7a
+                          ${
+                            resultado.acustica +
+                            resultado.comportamiento +
+                            resultado.semantica
+                          }%
+                          100%
+                        )`,
+                      }}
+                    />
+
+
+                    <div className="datosGrafica">
+
+                      <div className="datoGrafica">
+
+                        <span className="colorDato colorAcustica"></span>
+
+                        <div>
+
+                          <p>
+                            Detección acústica
+                          </p>
+
+                          <strong>
+                            {resultado.acustica}%
+                          </strong>
+
+                        </div>
+
+                      </div>
+
+
+                      <div className="datoGrafica">
+
+                        <span className="colorDato colorComportamiento"></span>
+
+                        <div>
+
+                          <p>
+                            Comportamiento
+                          </p>
+
+                          <strong>
+                            {resultado.comportamiento}%
+                          </strong>
+
+                        </div>
+
+                      </div>
+
+
+                      <div className="datoGrafica">
+
+                        <span className="colorDato colorSemantica"></span>
+
+                        <div>
+
+                          <p>
+                            Semántica
+                          </p>
+
+                          <strong>
+                            {resultado.semantica}%
+                          </strong>
+
+                        </div>
+
+                      </div>
+
+
+                      <div className="datoGrafica">
+
+                        <span className="colorDato colorContexto"></span>
+
+                        <div>
+
+                          <p>
+                            Contexto
+                          </p>
+
+                          <strong>
+                            {resultado.contexto}%
+                          </strong>
+
+                        </div>
+
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                </div>
+
+              )
+
+            })()}
+
           </div>
+
         </section>
+
       )}
+
     </main>
   )
 }
