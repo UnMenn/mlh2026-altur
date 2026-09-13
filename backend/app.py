@@ -1,12 +1,20 @@
 from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
+from contextlib import asynccontextmanager
 import torch
 torch.set_num_threads(1)
 
 from backend.routers import (
-  audio_router,
+  audio_router, database_router
 )
+
+# Hypertable Architecture for Call Telemetry
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+  await db.connect()
+  yield
+  await db.close()
 
 app = FastAPI(title="Hackathon MTY - Audio Analysis")
 
@@ -22,6 +30,7 @@ app.add_middleware(
 router = APIRouter()
 
 router.include_router(audio_router.router, tags=["Audio Analysis"])
+router.include_router(database_router.router, tags=["Database Telemetry"])
 app.include_router(router)
 
 @app.get("/")
