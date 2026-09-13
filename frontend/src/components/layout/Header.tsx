@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 export function Header() {
   return (
     <header className="header">
@@ -5,9 +6,18 @@ export function Header() {
         altur<span>.</span>
       </div>
 
-      <div className="demo-pill">
-        Demo omnicanal
+      <div className="header__actions">
+        <Link
+          to="/"
+          className="back-to-analyzer"
+        >
+          Analizador
+        </Link>
+
+        <div className="demo-pill">
+          Demo omnicanal
+        </div>
       </div>
     </header>
-  );
+  )
 }

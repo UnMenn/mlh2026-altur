@@ -28,18 +28,6 @@ function App() {
     const archivosSeleccionados = Array.from(
       e.target.files || []
     )
-
-    if (archivosSeleccionados.length > 3) {
-      setError(
-        'Puedes analizar un máximo de 3 audios a la vez.'
-      )
-
-      setAudios([])
-      setResultados([])
-
-      return
-    }
-
     const archivosInvalidos =
       archivosSeleccionados.filter(
         (archivo) =>
