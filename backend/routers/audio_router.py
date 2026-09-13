@@ -1,31 +1,37 @@
+from pydantic import BaseModel
+from backend.audio.turns import detect_turns
+from backend.audio.channels import extract_channels
+from backend.audio.validation import validate_wav
+from backend.audio.decoder import decode_base64_wav
+from fastapi import FastAPI, APIRouter, File, HTTPException, UploadFile
 from fastapi import FastAPI, APIRouter, File, HTTPException, UploadFile, BackgroundTasks
 from backend.utils.audio_processor import extract_segments_from_turns, extract_features_from_numpy
+from backend.utils.snowflake_connection import snowflake_connection
 from pathlib import Path
 import joblib
 import binascii
 import base64
 
+"""
+Main pipeline
+"""
+
 # Definir la ruta absoluta o relativa al archivo del modelo
-MODEL_PATH = Path(__file__).resolve().parent.parent / "acoustic_logistic_regression.model"
+MODEL_PATH = Path(__file__).resolve().parent.parent / \
+    "acoustic_logistic_regression.model"
 model = joblib.load(MODEL_PATH)
 
-from backend.audio.decoder import decode_base64_wav
-from backend.audio.validation import validate_wav
-from backend.audio.channels import extract_channels
-from backend.audio.turns import detect_turns
-from backend.tiger_database import db
-
-from pydantic import BaseModel
 
 # Inicializamos el router para este módulo específico
 router = APIRouter()
+
 
 class AudioRequest(BaseModel):
     call_id: str
     audio_base64: str
     sample_rate: int
     channels: int
-    
+
 
 @router.post("/detect")
 async def process_audio(background_tasks: BackgroundTasks, request: AudioRequest):
@@ -65,7 +71,8 @@ async def process_audio(background_tasks: BackgroundTasks, request: AudioRequest
         )
 
         # Separate stereo channels
-        caller_audio, agent_audio = extract_channels(wav_bytes)
+        caller_audio, agent_audio = extract_channels(
+            wav_bytes, request.call_id)
 
         # Detect conversation turns
         turns_result = detect_turns(
@@ -86,6 +93,8 @@ async def process_audio(background_tasks: BackgroundTasks, request: AudioRequest
             EXPECTED_SAMPLE_RATE,
             channel_0_segments,
         )
+
+        conn = snowflake_connection(request.call_id)
 
         # Extract features
         X_input = extract_features_from_numpy(
@@ -127,4 +136,3 @@ async def process_audio(background_tasks: BackgroundTasks, request: AudioRequest
             status_code=500,
             detail=f"Error interno procesando el audio: {str(e)}",
         )
-

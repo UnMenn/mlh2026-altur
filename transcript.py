@@ -28,7 +28,7 @@ transcriber = pipeline("automatic-speech-recognition",
 # 3. Search for all audio files (.wav)
 # Search in lowercase and uppercase to avoid extension errors
 audio_files = []
-for ext in ("*.wav", "*.WAV"):
+for ext in ("*.wav"):
     audio_files.extend(glob.glob(os.path.join(AUDIO_FOLDER, ext)))
 
 if not audio_files:
@@ -40,9 +40,10 @@ print(f"Found {len(audio_files)} audio files to process.")
 results = []
 
 # 4. Loop to transcribe each file
-for file_path in audio_files:
+for i, file_path in enumerate(audio_files, start=1):
     file_name = os.path.basename(file_path)
-    print(f" -> Transcribing (Both Channels): {file_name}...")
+    print(
+        f" [{i}/{len(audio_files)}] -> Transcribing (Both Channels): {file_name}...")
 
     try:
         # 1. Load the audio
@@ -75,28 +76,33 @@ for file_path in audio_files:
             text_canal_1 = output_1["text"]
         else:
             # If the audio is mono for any reason, transcribe it normally
-            print(f"    ⚠️ Mono audio detected. Copying text to both channels.")
+            print(f"Mono audio detected. Copying text to both channels.")
             output_mono = transcriber(
                 {"raw": data, "sampling_rate": samplerate},
                 chunk_length_s=30,
-                return_timestamps=True
+                return_timestamps=True,
+                generate_kwargs={"language": "spanish"}
             )
             text_canal_0 = output_mono["text"]
             text_canal_1 = output_mono["text"]
 
-        # 2. Save the result with independent columns
-        results.append({
+        # 2. Crear un DataFrame temporal con la fila actual
+        row_df = pd.DataFrame([{
             "FILE_NAME": file_name,
             "TEXT_CANAL_0": text_canal_0,
             "TEXT_CANAL_1": text_canal_1
-        })
+        }])
+
+        # 3. Guardar inmediatamente en el CSV en modo Append ('a')
+        # Si es el primer archivo (i == 1) escribe los encabezados, si no, los ignora
+        header_needed = not os.path.exists(OUTPUT_CSV)
+        row_df.to_csv(OUTPUT_CSV, mode='a', index=False,
+                      header=header_needed, encoding='utf-8')
+        print(f"    ✅ Saved to CSV.")
 
     except Exception as e:
         print(f"Error processing {file_name}: {e}")
 
 
-# 5. Save the results table to a CSV file
-df = pd.DataFrame(results)
-df.to_csv(OUTPUT_CSV, index=False, encoding='utf-8')
 print(
-    f"\n Process completed successfully! File saved as: '{OUTPUT_CSV}'")
+    f"\nAll available processes completed successfully! File updated at: '{OUTPUT_CSV}'")
