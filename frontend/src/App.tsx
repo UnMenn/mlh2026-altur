@@ -1,16 +1,9 @@
 import { useState, type ChangeEvent } from 'react'
 import { Link } from 'react-router-dom'
-
-import {
-  analyzeAudio,
-  type AudioAnalysisResponse,
-} from './services/audioAnalysis'
-
 import './App.css'
 
 function App() {
   const [audios, setAudios] = useState<File[]>([])
-  const [resultados, setResultados] = useState<AudioAnalysisResponse[]>([])
   const [mostrarResultado, setMostrarResultado] = useState(false)
   const [mostrarVerificacion, setMostrarVerificacion] = useState(false)
   const [audioSeleccionado, setAudioSeleccionado] = useState<number | null>(null)
@@ -47,6 +40,7 @@ function App() {
     const archivosSeleccionados = Array.from(
       e.target.files || []
     )
+
     const archivosInvalidos =
       archivosSeleccionados.filter(
         (archivo) =>
@@ -56,63 +50,28 @@ function App() {
     if (archivosInvalidos.length > 0) {
       setError('Solo puedes subir archivos de audio.')
       setAudios([])
-      setResultados([])
-      setAudios([])
-      setResultados([])
-
       return
     }
 
     setError('')
-    setResultados([])
     setAudios(archivosSeleccionados)
   }
 
-  const analizarAudios = async () => {
+  const analizarAudios = () => {
     if (audios.length === 0) {
       setError(
         'Selecciona al menos un archivo de audio.'
       )
-
       return
     }
 
-    try {
-      setError('')
-      setAnalizando(true)
+    setError('')
+    setAnalizando(true)
 
-      setError('')
-      setAnalizando(true)
-
-      try {
-        /*
-         * Envía todos los audios seleccionados
-         * al endpoint /api/process.
-         */
-        const respuestas = await Promise.all(
-          audios.map((audio) => analyzeAudio(audio))
-        )
-
-        console.log('Resultados de la API:', respuestas)
-
-        setResultados(respuestas)
-        setMostrarResultado(true)
-
-        setTimeout(() => {
-          setAnalizando(false)
-          setMostrarVerificacion(true)
-        }, 2000)
-      } catch (err) {
-        console.error('Error analizando audios:', err)
-
-        setError(
-          err instanceof Error
-            ? err.message
-            : 'Ocurrió un error durante el análisis.'
-        )
-      } finally {
-        setAnalizando(false)
-      }
+    setTimeout(() => {
+      setAnalizando(false)
+      setMostrarVerificacion(true)
+    }, 2000)
   }
 
   const verResultado = (index: number) => {
@@ -132,7 +91,6 @@ function App() {
     setMostrarVerificacion(false)
     setAudioSeleccionado(null)
     setAudios([])
-    setResultados([])
     setError('')
     setAnalizando(false)
   }
@@ -143,9 +101,7 @@ function App() {
       <header className="barraSuperior">
         <h2>
           Verificación de Audio
-          <span className="brand-dot">
-            .
-          </span>
+          <span className="brand-dot">.</span>
         </h2>
       </header>
 
@@ -155,6 +111,7 @@ function App() {
         <section className="contenidoPrincipal">
 
           <div className="textoPrincipal">
+
             <span>
               ANÁLISIS DE LLAMADAS
             </span>
@@ -254,7 +211,8 @@ function App() {
             {analizando && (
 
               <div className="estadoCarga">
-                <div className="circuloCarga" />
+
+                <div className="circuloCarga"></div>
 
                 <p>
                   Analizando llamadas...
@@ -299,16 +257,7 @@ function App() {
             <div>
 
               <p className="textoResultado">
-                {resultados.length > 0 ? (
-                  <>
-                    Se analizaron{' '}
-                    {resultados.length}{' '}
-                    audio
-                    {resultados.length !== 1 ? 's' : ''}
-                  </>
-                ) : (
-                  'Selecciona un audio para ver su resultado'
-                )}
+                Selecciona un audio para ver su resultado
               </p>
 
               <h1 className="tituloResultado">
@@ -406,166 +355,32 @@ function App() {
 
 
           <div className="listaResultados">
+
             {audioSeleccionado !== null && (() => {
-              const audio = audios[audioSeleccionado]
-              const resultado = datosPrueba[audioSeleccionado % datosPrueba.length]
+
+              const audio =
+                audios[audioSeleccionado]
+
+              const resultado =
+                datosPrueba[
+                  audioSeleccionado %
+                  datosPrueba.length
+                ]
 
               return (
+
                 <div className="tarjetaAnalisis">
+
                   <div className="encabezadoAnalisis">
-                    <span>ANÁLISIS DE DETECCIÓN</span>
 
-                    <h2>{audio.name}</h2>
-                  </div>
+                    <span>
+                      ANÁLISIS DE DETECCIÓN
+                    </span>
 
-                  <h1 className="resultadoAudio">
-                    {resultado.esHumano ? 'AUDIO HUMANO' : 'AUDIO SINTÉTICO'}
-                  </h1>
+                    <h2>
+                      {audio.name}
+                    </h2>
 
-                  <div className="seccionGrafica">
-                    <div
-                      className="graficaPastel graficaAnimada"
-                      style={{
-                        background: `conic-gradient(
-                          #292929 0% ${resultado.acustica}%, 
-                          #cccccc ${resultado.acustica}% ${resultado.acustica + resultado.contexto}%, 
-                          #9a9a9a ${resultado.acustica + resultado.contexto}% 100%
-                        )`,
-                      }}
-                    />
-
-                    <div className="datosGrafica">
-                      <div className="datoGrafica">
-                        <span className="colorDato colorAcustica" />
-                        <div>
-                          <p>Acústica</p>
-                          <strong>{resultado.acustica}%</strong>
-                        </div>
-                      </div>
-
-                      <div className="datoGrafica">
-                        <span className="colorDato colorContexto" />
-                        <div>
-                          <p>Contexto</p>
-                          <strong>{resultado.contexto}%</strong>
-                        </div>
-                      </div>
-
-                      <div className="datoGrafica">
-                        <span className="colorDato colorComportamiento" />
-                        <div>
-                          <p>Comportamiento</p>
-                          <strong>{resultado.comportamiento}%</strong>
-                        </div>
-                      </div>
-
-                      <div className="datoGrafica">
-                        <span className="colorDato colorSemantica" />
-                        <div>
-                          <p>Semántica</p>
-                          <strong>{resultado.semantica}%</strong>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )
-            })()}
-
-            {resultados.map((resultado, index) => {
-              const esSintetico =
-                resultado.prediction.toLowerCase() === 'synthetic'
-
-              const probabilidadSintetica =
-                resultado.synthetic_probability * 100
-
-              const probabilidadHumana =
-                100 - probabilidadSintetica
-
-              return (
-                <div
-                  className="tarjetaAnalisis"
-                  key={`${resultado.filename}-${index}`}
-                >
-                  <div className="encabezadoAnalisis">
-                    <span>ANÁLISIS DE DETECCIÓN</span>
-
-                    <h2>{resultado.filename}</h2>
-                  </div>
-
-                  <h1 className="resultadoAudio">
-                    {esSintetico ? 'AUDIO SINTÉTICO' : 'AUDIO HUMANO'}
-                  </h1>
-
-                  <div className="seccionGrafica">
-                    <div
-                      className="graficaPastel graficaAnimada"
-                      style={{
-                        background: `
-                          conic-gradient(
-                            #292929 0%
-                            ${probabilidadSintetica}%,
-                            #cccccc
-                            ${probabilidadSintetica}%
-                            100%
-                          )
-                        `,
-                      }}
-                    />
-
-                    <div className="datosGrafica">
-                      <div className="datoGrafica">
-                        <span className="colorDato colorAcustica" />
-
-                        <div>
-                          <p>Probabilidad sintética</p>
-
-                          <strong>
-                            {probabilidadSintetica.toFixed(2)}
-                            %
-                          </strong>
-                        </div>
-                      </div>
-
-                      <div className="datoGrafica">
-                        <span className="colorDato colorContexto" />
-
-                        <div>
-                          <p>Probabilidad humana</p>
-
-                          <strong>
-                            {probabilidadHumana.toFixed(2)}
-                            %
-                          </strong>
-                        </div>
-                      </div>
-
-                      <div className="datoGrafica">
-                        <span className="colorDato colorComportamiento" />
-
-                        <div>
-                          <p>Predicción</p>
-
-                          <strong>
-                            {esSintetico ? 'Sintético' : resultado.prediction}
-                          </strong>
-                        </div>
-                      </div>
-
-                      <div className="datoGrafica">
-                        <span className="colorDato colorSemantica" />
-
-                        <div>
-                          <p>Estado del canal</p>
-
-                          <strong>{resultado.channel_status}</strong>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )
-            })
                   </div>
 
 
@@ -585,7 +400,7 @@ function App() {
 
                       style={{
                         background: `conic-gradient(
-                          #8bd0e9
+                          #8bd0e9 0%
                           ${resultado.acustica}%,
 
                           #cb78ed
